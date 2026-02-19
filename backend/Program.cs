@@ -9,6 +9,16 @@ public class Program
         // Add services to the container.
         builder.Services.AddAuthorization();
 
+        builder.Services.AddAuthentication()
+            .AddJwtBearer(options =>
+            {
+                options.Authority = "http://localhost:8081/realms/gaming-forum";
+                options.Audience = "gaming-forum-api";
+                options.RequireHttpsMetadata = false;
+            });
+
+        builder.Services.AddAuthorizationBuilder();
+
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddOpenApi();
 
