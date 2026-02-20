@@ -1,5 +1,7 @@
 namespace backend.Models;
 
+using Enums;
+
 public class Post
 {
     public required Guid guid = Guid.Empty;
