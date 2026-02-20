@@ -3,6 +3,9 @@ services:
     build: ../backend
     ports:
       - 8080:5001
+    depends_on:
+      - database:
+        - condition: service_healthy
   keycloak:
     image: quay.io/keycloak/keycloak:latest
     container_name: keycloak
@@ -14,6 +17,23 @@ services:
     volumes:
       - keycloak-data:/opt/keycloak/data
     command: start-dev
+  database:
+    image: postgres:17
+    container_name: postgres-17
+    ports:
+      - 8082:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data/pgdata
+    env_file:
+      - env/db.env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U visp0 -d gaming-forum"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
 volumes:
   keycloak-data:
+  pgdata:
+    driver: local
