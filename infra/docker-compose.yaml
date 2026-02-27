@@ -1,11 +1,15 @@
 services:
+  frontend:
+    build: ../frontend
+    ports:
+      - 8083:80
   backend:
     build: ../backend
     ports:
       - 8080:5001
     depends_on:
-      - database:
-        - condition: service_healthy
+      database:
+        condition: service_healthy
   keycloak:
     image: quay.io/keycloak/keycloak:latest
     container_name: keycloak
