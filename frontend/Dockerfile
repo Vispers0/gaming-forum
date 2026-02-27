@@ -6,7 +6,7 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-# Stage 2: Serve the application with Nginx
+# Загрузка приложеня в Nginx
 FROM nginx:alpine AS production
 COPY --from=build /app/dist /usr/share/nginx/html
 
@@ -24,7 +24,6 @@ RUN echo 'server { \
     } \
 }' > /etc/nginx/conf.d/default.conf
 
-# Expose the port Nginx is listening on
+# Запуск Nginx
 EXPOSE 80
-# Nginx starts automatically
 CMD ["nginx", "-g", "daemon off;"]
