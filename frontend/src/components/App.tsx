@@ -1,9 +1,7 @@
-import AuthPage from './AuthPage'
-
 function App() {
   return (
     <>
-      <AuthPage/>
+      <h1>Under Construction</h1>
     </>
   );
 }

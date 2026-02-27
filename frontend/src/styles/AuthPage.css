@@ -42,9 +42,8 @@ html, body {
 }
 
 .auth-header img {
-    width: 40px;
-    height: 40px;
-    display: block;
+    width: 48px;
+    height: 48px;
     margin: 0;
 }
 
@@ -93,6 +92,11 @@ html, body {
     border: none;
     border-radius: 30px;
     font-size: 20px;
+}
+
+.auth-form a {
+    width: 100%;
+    height: 100%;
 }
 
 .auth-form button {

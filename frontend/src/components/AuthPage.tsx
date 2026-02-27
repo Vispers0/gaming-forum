@@ -1,5 +1,5 @@
-// import { useState } from "react";
-import reactIcon from "../assets/react.svg"
+import { Link } from "react-router-dom"
+import logo from "../assets/chat.png"
 import "../styles/AuthPage.css"
 
 function AuthPage(){
@@ -7,8 +7,8 @@ function AuthPage(){
         <>
             <header className="auth-header">
                 <a href="localhost:5137">
-                    <img src={ reactIcon }></img>
-                    <p>GamingForum</p>
+                    <img src={ logo }></img>
+                    <p>Chat&Play</p>
                 </a>
             </header>
             <div className="auth-form-container">
@@ -18,7 +18,9 @@ function AuthPage(){
                     <input placeholder="Пароль"/>
                     <button>Войти</button>
                     <button>Забыли пароль?</button>
-                    <button>Регистрация</button>
+                    <Link to="/register">
+                        <button>Регистрация</button>
+                    </Link>
                 </form>
             </div>
         </>
