@@ -2,5 +2,6 @@ namespace backend.Models;
 
 public class UserProfile
 {
-    public string? ProfilePicture;
+    public Guid guid { get; set; }= Guid.Empty;
+    public string? ProfilePicture { get; set; }
 }
