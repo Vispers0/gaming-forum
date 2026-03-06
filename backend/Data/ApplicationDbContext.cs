@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 namespace backend.Data;
 
 using Models;
+using Configuration;
 
 public class ApplicationDbContext : DbContext
 {
@@ -14,4 +15,13 @@ public class ApplicationDbContext : DbContext
     public DbSet<UserProfile> userProfiles { get; set; }
     public DbSet<Post> posts { get; set; }
     public DbSet<PostContent> postContents { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.ApplyConfiguration(new PostConfiguration());
+        modelBuilder.ApplyConfiguration(new PostContentConfiguration());
+        modelBuilder.ApplyConfiguration(new UserProfileConfiguration());
+    }
 }

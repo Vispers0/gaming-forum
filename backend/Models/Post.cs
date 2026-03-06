@@ -1,6 +1,7 @@
 namespace backend.Models;
 
 using Enums;
+using Microsoft.EntityFrameworkCore;
 
 public class Post
 {

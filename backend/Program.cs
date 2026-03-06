@@ -1,10 +1,29 @@
+using DotNetEnv;
+using Npgsql.EntityFrameworkCore.PostgreSQL;
+
 namespace backend;
+
+using Data;
+using Microsoft.EntityFrameworkCore;
 
 public class Program
 {
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+
+        Env.Load();
+
+        builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        {
+            options.UseNpgsql(
+                $"User ID={Env.GetString("DB_USER")};" +
+                $"Password={Env.GetString("DB_PASSWORD")};" +
+                $"Host={Env.GetString("DB_HOST")};" +
+                $"Port={Env.GetString("DB_PORT")};" +
+                $"Database={Env.GetString("DB_NAME")}"
+            );
+        });
 
         // Add services to the container.
         builder.Services.AddAuthorization();
