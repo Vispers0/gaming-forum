@@ -49,6 +49,14 @@ public class Program
             app.MapOpenApi();
         }
 
+        using (var scope = app.Services.CreateScope())
+        {
+            System.Diagnostics.Process.Start("bash", "dotnet ef migrations add InitialMigration");
+
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            context.Database.MigrateAsync();
+        }
+
         app.UseHttpsRedirection();
 
         app.UseAuthorization();
