@@ -19,7 +19,31 @@ public class PostRepository : IPostRepository
 
     public async Task<List<Post>?> GetPostsAsync()
     {
-        List<Post>? posts = await _context.posts.ToListAsync();
+        List<Post>? posts = await _context.posts
+            .Include(p => p.author)
+            .Include(p => p.postContent)
+            .ToListAsync();
         return posts;
+    }
+
+    public async Task<Post?> GetPostAsync(Guid guid)
+    {
+        Post? post = await _context.posts
+            .Include(p => p.author)
+            .Include(p => p.postContent)
+            .FirstOrDefaultAsync(p => p.guid == guid);
+        return post;
+    }
+
+    public void CreatePost(Post post)
+    {
+        _context.posts.Add(post);
+        _context.SaveChanges();
+    }
+
+    public void DeletePost(Post post)
+    {
+        _context.posts.Remove(post);
+        _context.SaveChanges();
     }
 }

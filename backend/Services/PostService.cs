@@ -28,4 +28,26 @@ public class PostService : IPostService
             return new List<Post>();
         }
     }
+
+    public Post? GetPost(Guid guid)
+    {
+        Task<Post?> post = _postRepository.GetPostAsync(guid);
+
+        return post.Result;
+    }
+
+    public void CreatePost(Post post)
+    {
+        _postRepository.CreatePost(post);
+    }
+
+    public void DeletePost(Guid guid)
+    {
+        Post? postToDelete = _postRepository.GetPostAsync(guid).Result;
+
+        if (postToDelete != null)
+        {
+            _postRepository.DeletePost(postToDelete);
+        }
+    }
 }

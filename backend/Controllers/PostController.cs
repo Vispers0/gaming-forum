@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers;
 
+using backend.DTOs;
+using backend.Mappers;
 using backend.Models;
 using Interfaces.Services;
 
@@ -22,7 +24,7 @@ public class PostController : ControllerBase
     {
         List<Post>? posts = _postService.GetPosts();
 
-        if (posts.Count > 0)
+        if (posts != null && posts.Count > 0)
         {
             return TypedResults.Ok(posts);
         }
@@ -36,21 +38,35 @@ public class PostController : ControllerBase
     [Route("post/{postId}")]
     public IResult FetchPost([FromRoute] Guid postId)
     {
-        return TypedResults.NotFound();
+        Post? post = _postService.GetPost(postId);
+
+        if (post != null)
+        {
+            return TypedResults.Ok(post);
+        }
+        else
+        {
+            return TypedResults.NotFound();
+        }
     }
 
     [HttpPost]
     [Route("create/post")]
-    public IResult CreatePost()
+    public IResult CreatePost([FromBody] CreatePostDTO createPostDTO)
     {
-        return TypedResults.NotFound();
+        Post post = createPostDTO.ToPost();
+
+        _postService.CreatePost(post);
+
+        return TypedResults.Created();
     }
 
     [HttpDelete]
-    [Route("delete/post")]
-    public IResult DeletePost()
+    [Route("delete/post/{postId}")]
+    public IResult DeletePost([FromRoute] Guid postId)
     {
-        return TypedResults.NotFound();
+        _postService.DeletePost(postId);
+        return TypedResults.NoContent();
     }
 
     [HttpPut]
