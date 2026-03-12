@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers;
 
+using backend.Models;
 using Interfaces.Services;
 
 [ApiController]
@@ -16,14 +17,23 @@ public class PostController : ControllerBase
     }
 
     [HttpGet]
-    [Route("/posts")]
+    [Route("posts")]
     public IResult FetchPosts()
     {
-        return TypedResults.NotFound();
+        List<Post>? posts = _postService.GetPosts();
+
+        if (posts.Count > 0)
+        {
+            return TypedResults.Ok(posts);
+        }
+        else 
+        {
+            return TypedResults.NoContent();
+        }
     }
 
     [HttpGet]
-    [Route("/post/{postId}")]
+    [Route("post/{postId}")]
     public IResult FetchPost([FromRoute] Guid postId)
     {
         return TypedResults.NotFound();
