@@ -70,9 +70,16 @@ public class PostController : ControllerBase
     }
 
     [HttpPut]
-    [Route("edit/post")]
-    public IResult EditPost()
+    [Route("edit/post/{postId}")]
+    public IResult EditPost([FromRoute] Guid postId, [FromBody] UpdatePostDTO updatePostDTO)
     {
-        return TypedResults.NotFound();
+        if (!ModelState.IsValid)
+        {
+            return TypedResults.BadRequest();
+        }
+
+        _postService.UpdatePost(postId, updatePostDTO);
+
+        return TypedResults.Ok(_postService.GetPost(postId));
     }
 }

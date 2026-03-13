@@ -2,7 +2,7 @@ namespace backend.Repositories;
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
+using backend.DTOs;
 using backend.Models;
 using Data;
 using Interfaces.Repositories;
@@ -38,6 +38,16 @@ public class PostRepository : IPostRepository
     public void CreatePost(Post post)
     {
         _context.posts.Add(post);
+        _context.SaveChanges();
+    }
+
+    public void UpdatePost(Guid guid, UpdatePostDTO updatePostDTO)
+    {
+        Post? post = GetPostAsync(guid).Result;
+
+        post.postType = updatePostDTO.PostType;
+        post.postContent = updatePostDTO.PostContent;
+
         _context.SaveChanges();
     }
 

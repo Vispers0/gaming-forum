@@ -5,6 +5,7 @@ using backend.Models;
 using Interfaces.Services;
 
 using backend.Interfaces.Repositories;
+using backend.DTOs;
 
 public class PostService : IPostService
 {
@@ -39,6 +40,11 @@ public class PostService : IPostService
     public void CreatePost(Post post)
     {
         _postRepository.CreatePost(post);
+    }
+
+    public void UpdatePost(Guid guid, UpdatePostDTO updatePostDTO)
+    {
+        _postRepository.UpdatePost(guid, updatePostDTO);
     }
 
     public void DeletePost(Guid guid)
