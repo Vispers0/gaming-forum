@@ -10,65 +10,43 @@ import games from "../assets/Xbox_notFound.svg";
 import guides from "../assets/Chat_Check.svg";
 import teammates from "../assets/Handshake - 48px.svg";
 import arrow from "../assets/Chevron_Left.svg";
+import { useState } from "react";
 
 function Menu_full(){
+  const [isCollapsed, setIsCollapsed] = useState(false)
+
+  const toggleMenu = () => {
+    setIsCollapsed(!isCollapsed);
+  }
+
+  const menuItems = [
+    { to: "/home", icon: home, label: "Главная"},
+    { to: "/profile", icon: profile, label: "Мой профиль"},
+    { to: "/friends", icon: friends, label: "Друзья"},
+    { to: "/messages", icon: messages, label: "Сообщения"},
+    { to: "/groups", icon: groups, label: "Сообщества"},
+    { to: "/games", icon: games, label: "Игры"},
+    { to: "/guides", icon: guides, label: "Руководства"},
+    { to: "/teammates", icon: teammates, label: "Поиск напарника"}
+  ];
+
   return(
     <>
       <div className="menu-container">
-        <nav>
-        <ul>
-            <li>
-              <NavLink className="menu-link" to="/home">
-                <img className= "menu-icon" src={ home }/>
-                <span>Главная</span>
+        <nav className={isCollapsed ? "collapsed" : ""}>
+          <ul>
+            {menuItems.map((item) => (
+            <li key={item.to}>
+              <NavLink className="menu-link" to={item.to}>
+                <img className="menu-icon" src={item.icon} alt={item.label}/>
+                <span className="menu-label">{item.label}</span>
               </NavLink>
             </li>
-            <li>
-              <NavLink className="menu-link" to="/profile">
-                <img className="menu-icon" src = { profile }/>
-                <span>Мой профиль</span>
-              </NavLink>
-            </li>
-            <li>
-              <NavLink className="menu-link" to="/friends">
-                <img className="menu-icon" src = { friends }/>
-                <span>Друзья</span>
-              </NavLink>
-            </li>
-            <li>
-              <NavLink className="menu-link" to="/messages">
-                <img className="menu-icon" src = { messages }/>
-                <span>Сообщения</span>
-              </NavLink>
-            </li>
-            <li>
-              <NavLink className="menu-link" to="/groups">
-                <img className="menu-icon" src = { groups }/>
-                <span>Сообщества</span>
-              </NavLink>
-            </li>
-            <li>
-              <NavLink className="menu-link" to="/games">
-                <img className="menu-icon" src = { games }/>
-                <span>Игры</span>
-              </NavLink>
-            </li>
-            <li>
-              <NavLink className="menu-link" to="/guides">
-                <img className="menu-icon" src = { guides }/>
-                <span>Руководства</span>
-              </NavLink>
-            </li>
-            <li>
-              <NavLink className="menu-link" to="/teammates">
-                <img className="menu-icon" src = { teammates }/>
-                <span>Поиск напарников</span>
-              </NavLink>
-            </li>
+            ))}
           </ul>
-          <button>
-            <img className="menu-icon" src = { arrow }/>
-            <span>Свернуть меню</span>
+          <button className={isCollapsed ? "collapsed" : ""} onClick={toggleMenu}>
+            <img className={"menu-icon"} src = { arrow } alt="Свернуть / Развернуть меню"/>
+            <span className="menu-label">Свернуть меню</span>
           </button>
         </nav>
       </div>

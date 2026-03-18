@@ -17,6 +17,39 @@ nav {
     border-radius: 30px;
     border-style: solid;
     border-width: 1px;
+    transition: width 0.3s ease;
+    overflow: hidden;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.menu-link, nav button {
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.menu-label {
+    transition: opacity 0.2s ease, width 0.3s ease, margin 0.3s ease;
+    opacity: 1;
+}
+
+nav.collapsed .menu-label {
+    opacity: 0;
+    width: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transition: opacity 0.2s ease, width 0.3s ease, margin 0.3s ease, visibility 0.3s ease;
+}
+
+.menu-link, nav button {
+    transition: background-color 0.2s ease, justify-content 0.3s ease, padding 0.3s ease;
+}
+
+nav button .menu-icon {
+    transition: transform 0.3s ease;
+}
+
+nav.collapsed button .menu-icon {
+    transform: rotate(180deg);
 }
 
 ul {
@@ -66,6 +99,7 @@ nav button {
     border: none;
     border-radius: 30px;
     padding: 8px;
+    transition: background-color 0.2s ease, justify-content 0.3s ease, padding 0.3s ease;
 }
 
 .menu-link[aria-current="page"] img {
