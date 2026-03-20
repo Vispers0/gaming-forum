@@ -1,12 +1,17 @@
 .menu-container{
+    position: sticky;
+    top: 100px;
+    align-self: flex-start;
     display: flex;
     width: fit-content;
-    height: 90%;
-    justify-content: center;
-    align-items: center;
+    height: 100%;
+    margin-top: 14px;
+    align-items: flex-start;
 }
 
 nav {
+    position: sticky;
+    align-self: flex-start;
     display: flex;
     flex-direction: column;
     gap: 10px;

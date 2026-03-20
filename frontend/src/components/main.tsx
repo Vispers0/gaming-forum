@@ -5,15 +5,11 @@ import { ReactKeycloakProvider } from '@react-keycloak-fork/web'
 import keycloak from '../keycloak.ts'
 
 import App from './App.tsx'
-import AuthPage from './AuthPage.tsx'
-import RegisterPage from './RegisterPage.tsx'
 import Home from './Home.tsx'
 
 const router = createBrowserRouter([
   {path: "/", element: <App />},
   {path: "/home", element: <Home />},
-  {path: "/auth", element: <AuthPage />},
-  {path: "/register", element: <RegisterPage />}
 ]);
 
 // const handleKeycloakEvent = (event: string, error?: Error) => {

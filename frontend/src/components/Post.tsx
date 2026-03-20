@@ -4,13 +4,17 @@ import "../styles/Post.css"
 
 import noAvatarPicture from "../assets/User_Circle.svg"
 import testPicture from "../assets/image-test.jpg"
+import likeIcon from "../assets/Heart_01.svg"
+import commentIcon from "../assets/Chat_Conversation_Circle.svg"
 
 function Post() {
-  const [avatar, setAvatar] = useState(noAvatarPicture)
-  const [publishDate, setPublishDate] = useState(0)
-  const [postTitle, setPostTitle] = useState("Test title dummy")
+  const [avatar] = useState(noAvatarPicture)
+  const [publishDate] = useState(0)
+  const [postTitle] = useState("Test title dummy")
   const [postImage, setPostImage] = useState<string | null>(null)
-  const [postText, setPostText] = useState("Post text dummy")
+  const [postText] = useState("Post text dummy")
+  const [likeCount] = useState(0)
+  const [commentCount] = useState(0)
 
   useEffect(() => {
     setPostImage(testPicture)
@@ -51,6 +55,16 @@ function Post() {
           <p className="post-text">
             {postText}
           </p>
+        </div>
+        <div className="interactions-container">
+          <button className="like-button">
+            <img src={likeIcon}/>
+            <span>{likeCount}</span>
+          </button>
+          <button className="comment-button">
+              <img src={commentIcon}/>
+              <span>{commentCount}</span>
+          </button>
         </div>
       </div>
     </>
