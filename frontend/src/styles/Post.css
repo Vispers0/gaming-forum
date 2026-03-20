@@ -1,0 +1,67 @@
+.post-body {
+    margin: 8px;
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    font-size: 20px;
+    gap: 10px;
+}
+
+.author-label {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    height: fit-content;
+    gap: 10px;
+}
+
+.author-label span {
+    color: #CCCCCC;
+}
+
+.author-label span.publish-date-label {
+    color: #555555;
+}
+
+.profile-picture {
+    width: 48px;
+    height: 48px;
+}
+
+.circle-decoration {
+    width: 5px;
+    height: 5px;
+    background-color: #555555;
+    border-radius: 5px;
+}
+
+.post-tags {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    gap: 10px;
+}
+
+.game-tag {
+    display: flex;
+    align-items: center;
+    padding: 14px;
+    background: #8B0000;
+    color: #FFFFFF;
+    border-radius: 30px;
+}
+
+.post-type-tag {
+    display: flex;
+    align-items: center;
+    padding: 14px;
+    background: #4361EE;
+    color: #FFFFFF;
+    border-radius: 30px;
+}
+
+.post-title {
+    font-size: 32px;
+    font-weight: bold;
+}

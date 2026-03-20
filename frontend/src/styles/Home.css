@@ -21,6 +21,22 @@ html, body {
     padding: 0;
 }
 
+.main-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: top;
+    flex-direction: row;
+    height: 90%;
+    gap: 100px;
+}
+
+.temp-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+}
+
 .base-header{
     padding: 14px;
     display: flex;

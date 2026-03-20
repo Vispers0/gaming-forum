@@ -4,6 +4,7 @@ import logo from "../assets/chat.png"
 import "../styles/Home.css"
 
 import Menu_full from "./Menu_full";
+import Post from "./Post"
 
 function Home(){
     const { keycloak } = useKeycloak();
@@ -35,7 +36,14 @@ function Home(){
                     )}
                 </div>
             </header>
-            <Menu_full />
+            <div className="main-container">
+                <Menu_full />
+                <div className="temp-container">
+                    <Post />
+                    <Post />
+                    <Post />
+                </div>
+            </div>
         </>
     );
 }
