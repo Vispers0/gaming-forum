@@ -49,11 +49,6 @@ public class PostService : IPostService
 
     public void DeletePost(Guid guid)
     {
-        Post? postToDelete = _postRepository.GetPostAsync(guid).Result;
-
-        if (postToDelete != null)
-        {
-            _postRepository.DeletePost(postToDelete);
-        }
+        _postRepository.DeletePost(guid);
     }
 }

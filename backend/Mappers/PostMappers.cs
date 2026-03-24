@@ -16,8 +16,8 @@ public static class PostMappers
                 ProfilePicture = createPostDTO.Author.ProfilePicture
                 
             },
-            postType = createPostDTO.PostType,
-            postContent = new PostContent
+            PostType = createPostDTO.PostType,
+            PostContent = new PostContent
             {
                 guid = Guid.NewGuid(),
                 Title = createPostDTO.PostContent.Title,

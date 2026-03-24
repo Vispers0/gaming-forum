@@ -7,6 +7,16 @@ using backend.Mappers;
 using backend.Models;
 using Interfaces.Services;
 
+// TODO: связать backend и frontend
+// TODO: определить на бэке какой пользователь подключён
+// TODO: фиксы по синхронным запросам
+// TODO: DTO для GET Post
+// TODO: Нормальные миграции
+// TODO: Таблица лайков пользователей
+// TODO: убрать nullable
+// TODO: Модерация продумать
+// TODO: Миграции Metanit
+
 [ApiController]
 [Route("/api")]
 public class PostController : ControllerBase
@@ -22,7 +32,7 @@ public class PostController : ControllerBase
     [Route("posts")]
     public IResult FetchPosts()
     {
-        List<Post>? posts = _postService.GetPosts();
+        List<Post>? posts = _postService.GetPosts(); //todo dto - isLiked = true,false table userid postid
 
         if (posts != null && posts.Count > 0)
         {
@@ -69,7 +79,7 @@ public class PostController : ControllerBase
         return TypedResults.NoContent();
     }
 
-    [HttpPut]
+    [HttpPatch]
     [Route("edit/post/{postId}")]
     public IResult EditPost([FromRoute] Guid postId, [FromBody] UpdatePostDTO updatePostDTO)
     {

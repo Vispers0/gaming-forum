@@ -21,7 +21,7 @@ public class PostRepository : IPostRepository
     {
         List<Post>? posts = await _context.posts
             .Include(p => p.author)
-            .Include(p => p.postContent)
+            .Include(p => p.PostContent)
             .ToListAsync();
         return posts;
     }
@@ -30,7 +30,7 @@ public class PostRepository : IPostRepository
     {
         Post? post = await _context.posts
             .Include(p => p.author)
-            .Include(p => p.postContent)
+            .Include(p => p.PostContent)
             .FirstOrDefaultAsync(p => p.guid == guid);
         return post;
     }
@@ -41,19 +41,29 @@ public class PostRepository : IPostRepository
         _context.SaveChanges();
     }
 
-    public void UpdatePost(Guid guid, UpdatePostDTO updatePostDTO)
+    public void UpdatePost(Guid guid, UpdatePostDTO updatePostDTO) //ExecuteUpdateAsync
     {
         Post? post = GetPostAsync(guid).Result;
 
-        post.postType = updatePostDTO.PostType;
-        post.postContent = updatePostDTO.PostContent;
+        post.PostType = updatePostDTO.PostType;
+        post.PostContent = updatePostDTO.PostContent;
 
-        _context.SaveChanges();
+         _context.SaveChanges();
+        //_context.posts.Where(p => p.guid == guid)
+        //    .ExecuteUpdateAsync(setter => setter
+        //        .SetProperty(p => p.PostContent.Title, updatePostDTO.PostContent.Title)
+        //        .SetProperty(p => p.PostContent.BodyText, updatePostDTO.PostContent.BodyText)
+        //        .SetProperty(p => p.PostType, updatePostDTO.PostType)
+        //    );
     }
 
-    public void DeletePost(Post post)
+    public async Task DeletePost(Guid postId) //.ExecuteDeleteAsync();
     {
-        _context.posts.Remove(post);
-        _context.SaveChanges();
+        // _context.posts.Remove(post);
+        // _context.SaveChanges();
+        await _context.posts.Where(p => p.guid == postId).ExecuteDeleteAsync();
     }
+
+    // todo метод для получения статей по конкретному тегу
+    // todo поиск на сайте по содержимому текста
 }
