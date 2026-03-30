@@ -16,9 +16,9 @@ nav {
     flex-direction: column;
     gap: 10px;
     padding: 14px;
-    background-color: #333333;
+    background-color: #E6E6E6;
     width: fit-content;
-    border: #666666;
+    border: #AAAAAA;
     border-radius: 30px;
     border-style: solid;
     border-width: 1px;
@@ -76,7 +76,7 @@ nav button {
     border: none;
     font-family: 'Noto Sans';
     font-size: 20px;
-    color: #FFFFFF;
+    color: #000000;
     text-align: start;
     align-items: center;
     padding: 8px;
@@ -87,7 +87,7 @@ nav button {
 .menu-link {
     display: flex;
     padding: 8px;
-    color: #FFFFFF;
+    color: #000000;
     text-decoration: none;
     gap: 10px;
     align-items: center;
@@ -96,11 +96,12 @@ nav button {
 .menu-icon {
     width: 48px;
     height: 48px;
+    filter: brightness(0);
 }
 
 .menu-link[aria-current="page"]{
-    background-color: #CCCCCC;
-    color: #000000;
+    background-color: #5A5A5A;
+    color: #FFFFFF;
     border: none;
     border-radius: 30px;
     padding: 8px;
@@ -108,7 +109,7 @@ nav button {
 }
 
 .menu-link[aria-current="page"] img {
-    filter: brightness(0);
+    filter: brightness(1);
     width: 48px;
     height: 48px;
 }

@@ -10,8 +10,8 @@ html, body {
 
 :root {
     font-family: 'Noto Sans';
-    color: #FFFFFF;
-    background-color: #232323;
+    color: #1E1E1E;
+    background-color: #F0F0F0;
     padding: 14px;
 }
 
@@ -47,7 +47,7 @@ html, body {
     align-items: center;
     gap: 10px;
     justify-content: space-between;
-    border-bottom: #666666;
+    border-bottom: #AAAAAA;
     border-bottom-width: 1px;
     border-bottom-style: solid;
     flex-shrink: 0;
@@ -70,7 +70,7 @@ html, body {
 .base-header p {
     font-size: 20px;
     font-weight: bold;
-    color: #FFFFFF;
+    color: #1E1E1E;
     margin: 0;
 }
 
@@ -82,8 +82,8 @@ html, body {
     padding: 14px;
     width: 100px;
     height: 100%;
-    background-color: #CCCCCC;
-    color: #000000;
+    background-color: #5A5A5A;
+    color: #FFFFFF;
     cursor: pointer;
     border: none;
     border-radius: 30px;
@@ -96,8 +96,8 @@ html, body {
     padding: 14px;
     width: 100%;
     height: 100%;
-    background-color: #666666;
-    color: #989898;
+    background-color: #AAAAAA;
+    color: #FAFAFA;
     border: none;
     border-radius: 30px;
     font-size: 20px;
