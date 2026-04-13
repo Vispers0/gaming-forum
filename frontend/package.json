@@ -12,6 +12,7 @@
   "dependencies": {
     "@react-keycloak-fork/web": "^4.0.3",
     "@react-keycloak-refork/core": "^8.0.2",
+    "axios": "^1.14.0",
     "dotenv": "^17.3.1",
     "keycloak-js": "^26.2.3",
     "react": "^19.2.0",

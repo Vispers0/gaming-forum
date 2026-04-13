@@ -68,7 +68,7 @@ public class PostController : ControllerBase
 
         _postService.CreatePost(post);
 
-        return TypedResults.Created();
+        return TypedResults.Created("zaebumba");
     }
 
     [HttpDelete]

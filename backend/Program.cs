@@ -48,6 +48,7 @@ public class Program
 
         builder.Services.AddScoped<IPostRepository, PostRepository>();
         builder.Services.AddScoped<IPostService, PostService>();
+        builder.Services.AddScoped<IKeycloakService, KeycloakService>();
 
         var app = builder.Build();
 
