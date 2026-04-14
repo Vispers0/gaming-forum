@@ -1,17 +1,24 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import { ReactKeycloakProvider } from '@react-keycloak-fork/web'
 import keycloak from '../keycloak.ts'
 
-import App from './App.tsx'
+// import App from './App.tsx'
 import Home from './Home.tsx'
 import CreatePost from './CreatePost.tsx'
+import Layout from './Layout.tsx'
 
-const router = createBrowserRouter([
-  {path: "/", element: <App />},
-  {path: "/home", element: <Home />},
-  {path: "/post", element: <CreatePost />}
+const router = createBrowserRouter([{
+  path: "/",
+  element: <Layout />,
+  children: [
+    { index: true, element: <Navigate to="/home" replace /> },
+    // {path: "/", element: <App />},
+    {path: "/home", element: <Home />},
+    {path: "/post", element: <CreatePost />}
+  ]
+}
 ]);
 
 // const handleKeycloakEvent = (event: string, error?: Error) => {

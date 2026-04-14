@@ -1,9 +1,7 @@
+import { Navigate } from "react-router-dom";
+
 function App() {
-  return (
-    <>
-      <h1>Under Construction</h1>
-    </>
-  );
+  return <Navigate to="/home" replace />;
 }
 
-export default App
+export default App;
