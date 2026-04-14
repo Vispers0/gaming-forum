@@ -34,7 +34,7 @@ html, body {
     gap: 100px;
 }
 
-.temp-container {
+.content-container {
     display: flex;
     flex-direction: column;
     width: 100%;
