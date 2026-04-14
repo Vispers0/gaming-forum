@@ -37,7 +37,7 @@ function Home(){
                 </div>
             </header>
             <div className="main-container">
-                <Menu_full />
+                <Menu_full isAuthenticated={keycloak.authenticated} />
                 <div className="temp-container">
                     <Post />
                     <Post />

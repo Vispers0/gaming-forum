@@ -6,10 +6,12 @@ import keycloak from '../keycloak.ts'
 
 import App from './App.tsx'
 import Home from './Home.tsx'
+import CreatePost from './CreatePost.tsx'
 
 const router = createBrowserRouter([
   {path: "/", element: <App />},
   {path: "/home", element: <Home />},
+  {path: "/post", element: <CreatePost />}
 ]);
 
 // const handleKeycloakEvent = (event: string, error?: Error) => {

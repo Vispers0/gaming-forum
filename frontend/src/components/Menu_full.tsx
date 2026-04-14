@@ -10,9 +10,14 @@ import games from "../assets/Xbox_notFound.svg";
 import guides from "../assets/Chat_Check.svg";
 import teammates from "../assets/Handshake - 48px.svg";
 import arrow from "../assets/Chevron_Left.svg";
+import add from "../assets/add.svg";
 import { useState } from "react";
 
-function Menu_full(){
+interface MenuProps{
+  isAuthenticated: boolean;
+}
+
+function Menu_full({ isAuthenticated }: MenuProps){
   const [isCollapsed, setIsCollapsed] = useState(false)
 
   const toggleMenu = () => {
@@ -27,8 +32,10 @@ function Menu_full(){
     { to: "/groups", icon: groups, label: "Сообщества"},
     { to: "/games", icon: games, label: "Игры"},
     { to: "/guides", icon: guides, label: "Руководства"},
-    { to: "/teammates", icon: teammates, label: "Поиск напарника"}
+    { to: "/teammates", icon: teammates, label: "Поиск напарника"},
   ];
+
+  const createPostOption = { to: "/post", icon: add , label: "Создать пост"}
 
   return(
     <>
@@ -43,6 +50,14 @@ function Menu_full(){
               </NavLink>
             </li>
             ))}
+            {isAuthenticated && (
+              <li key={createPostOption.to}>
+                <NavLink className="menu-link" to={createPostOption.to}>
+                  <img className="menu-icon" src={createPostOption.icon} alt={createPostOption.label}/>
+                  <span className="menu-label">{createPostOption.label}</span>
+                </NavLink>
+              </li>
+            )}
           </ul>
           <button className={isCollapsed ? "collapsed" : ""} onClick={toggleMenu}>
             <img className={"menu-icon"} src = { arrow } alt="Свернуть / Развернуть меню"/>
