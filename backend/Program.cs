@@ -46,9 +46,22 @@ public class Program
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddOpenApi();
 
+        builder.Services.AddHostedService<KeycloakSyncService>();
+
         builder.Services.AddScoped<IPostRepository, PostRepository>();
         builder.Services.AddScoped<IPostService, PostService>();
         builder.Services.AddScoped<IKeycloakService, KeycloakService>();
+
+        builder.Services.AddCors(options =>
+{
+            options.AddPolicy("AllowFrontend", policy =>
+            {
+                policy.WithOrigins("http://localhost:8083")
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials();
+            });
+        });
 
         var app = builder.Build();
 
@@ -65,6 +78,8 @@ public class Program
         //     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         //     context.Database.MigrateAsync();
         // }
+
+        app.UseCors("AllowFrontend");   
 
         app.UseRouting();
 

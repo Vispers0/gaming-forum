@@ -9,14 +9,8 @@ public static class PostMappers
     {
         return new Post
         {
-            guid = Guid.NewGuid(),
-            author = new UserProfile
-            {
-                guid = createPostDTO.Author.guid,
-                ProfilePicture = createPostDTO.Author.ProfilePicture
-                
-            },
-            PostType = createPostDTO.PostType,
+            Guid = Guid.NewGuid(),
+            AuthorId = createPostDTO.AuthorId,
             PostContent = new PostContent
             {
                 guid = Guid.NewGuid(),
@@ -25,8 +19,8 @@ public static class PostMappers
                 Image = createPostDTO.PostContent.Image
             },
             publishDate = DateTime.UtcNow,
-            likes = 0,
-            comments = 0
+            Likes = 0,
+            Comments = 0
         };
     }
 }

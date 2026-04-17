@@ -5,11 +5,12 @@ using Microsoft.EntityFrameworkCore;
 
 public class Post
 {
-    public required Guid guid { get; set; } = Guid.Empty;
-    public required UserProfile author { get; set; }
-    public required PostType PostType { get; set; }
+    public required Guid Guid { get; set; } = Guid.Empty;
+    public required Guid AuthorId {get; set;}
+    // public required UserProfile author { get; set; }
+    // public required PostType PostType { get; set; }
     public required PostContent PostContent { get; set; }
     public required DateTime publishDate { get; set; }
-    public uint likes { get; set; }
-    public uint comments { get; set; }
+    public uint Likes { get; set; }
+    public uint Comments { get; set; }
 }

@@ -64,18 +64,6 @@ public class KeycloakService : IKeycloakService
         return tokenResponse.AccessToken;
     }
 
-    // public KeycloakService(IConfiguration configuration)
-    // {
-    //     var keycloakSettings = configuration.GetSection("keycloak");
-    //     _realm = keycloakSettings["realm"];
-    //     _keycloakClient = new KeycloakClient(
-    //         keycloakSettings["Baseurl"],
-    //         keycloakSettings["ClientSecret"]
-    //     );
-    // }
-
-
-
     public async Task<List<User>> GetAllUsersAsync()
     {
         var users = await _keycloakClient.GetUsersAsync(_realm);

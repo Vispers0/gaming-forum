@@ -20,7 +20,6 @@ public class PostRepository : IPostRepository
     public async Task<List<Post>?> GetPostsAsync()
     {
         List<Post>? posts = await _context.posts
-            .Include(p => p.author)
             .Include(p => p.PostContent)
             .ToListAsync();
         return posts;
@@ -29,9 +28,8 @@ public class PostRepository : IPostRepository
     public async Task<Post?> GetPostAsync(Guid guid)
     {
         Post? post = await _context.posts
-            .Include(p => p.author)
             .Include(p => p.PostContent)
-            .FirstOrDefaultAsync(p => p.guid == guid);
+            .FirstOrDefaultAsync(p => p.Guid == guid);
         return post;
     }
 
@@ -45,7 +43,6 @@ public class PostRepository : IPostRepository
     {
         Post? post = GetPostAsync(guid).Result;
 
-        post.PostType = updatePostDTO.PostType;
         post.PostContent = updatePostDTO.PostContent;
 
          _context.SaveChanges();
@@ -61,7 +58,7 @@ public class PostRepository : IPostRepository
     {
         // _context.posts.Remove(post);
         // _context.SaveChanges();
-        await _context.posts.Where(p => p.guid == postId).ExecuteDeleteAsync();
+        await _context.posts.Where(p => p.Guid == postId).ExecuteDeleteAsync();
     }
 
     // todo метод для получения статей по конкретному тегу

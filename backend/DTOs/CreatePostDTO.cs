@@ -7,9 +7,7 @@ namespace backend.DTOs;
 public class CreatePostDTO
 {
     [Required]
-    public UserProfile Author { get; set; }
+    public Guid AuthorId { get; set; }
     [Required]
-    public PostType PostType { get; set; }
-
     public PostContent PostContent { get; set; }
 }

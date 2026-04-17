@@ -1,18 +1,24 @@
 // CreatePost.tsx
 import React, { useState, useRef } from 'react';
-import type { ChangeEvent, DragEvent } from 'react';
+import type { ChangeEvent, DragEvent, FormEvent } from 'react';
+import { useKeycloak } from '@react-keycloak-fork/web';
 import '../styles/CreatePost.css';
 
 interface PostContent {
-    guid: string;
     Title: string;
     BodyText?: string | null;
     Image?: string | null;
 }
 
+interface CreatePostRequest {
+    AuthorId: string;
+    PostContent: PostContent;
+}
+
 const CreatePost: React.FC = () => {
+    const { keycloak } = useKeycloak();
+    
     const [formData, setFormData] = useState<PostContent>({
-        guid: '00000000-0000-0000-0000-000000000000',
         Title: '',
         BodyText: '',
         Image: ''
@@ -28,6 +34,15 @@ const CreatePost: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Получаем ID пользователя из Keycloak
+    const getAuthorId = (): string => {
+        if (keycloak.authenticated && keycloak.tokenParsed?.sub) {
+            return keycloak.tokenParsed.sub;
+        }
+        throw new Error('Пользователь не авторизован');
+    };
+
+    // Обработчики изменения полей
     const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
@@ -37,6 +52,7 @@ const CreatePost: React.FC = () => {
         }
     };
 
+    // Обработка загрузки изображения
     const handleImageUpload = (file: File) => {
         if (file.size > 10 * 1024 * 1024) {
             setErrors(prev => ({ ...prev, Image: 'Размер изображения не должен превышать 10MB' }));
@@ -116,7 +132,8 @@ const CreatePost: React.FC = () => {
         return isValid;
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    // Отправка формы - изменённый формат запроса
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         
         if (!validateForm()) {
@@ -126,21 +143,33 @@ const CreatePost: React.FC = () => {
         setIsLoading(true);
 
         try {
-            const response = await fetch('/api/posts', {
+            // Формируем тело запроса в нужном формате
+            const requestData: CreatePostRequest = {
+                AuthorId: getAuthorId(),
+                PostContent: {
+                    Title: formData.Title,
+                    BodyText: formData.BodyText || null,
+                    Image: formData.Image || null
+                }
+            };
+
+            console.log('Отправляемые данные:', requestData);
+
+            const response = await fetch('http://localhost:8080/api/create/post', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(requestData)
             });
 
             if (response.ok) {
-                const result = await response.json();
-                console.log('Post created:', result);
-                alert('Публикация успешно создана!');
+            //     const result = await response.json();
+            //     console.log('Post created:', result);
+                 alert('Публикация успешно создана!');
                 
+                // Сброс формы
                 setFormData({
-                    guid: '00000000-0000-0000-0000-000000000000',
                     Title: '',
                     BodyText: '',
                     Image: ''
@@ -149,9 +178,9 @@ const CreatePost: React.FC = () => {
                 if (fileInputRef.current) {
                     fileInputRef.current.value = '';
                 }
-            } else {
-                const error = await response.json();
-                alert('Ошибка при создании публикации: ' + (error.message || 'Неизвестная ошибка'));
+            // } else {
+            //     const error = await response.json();
+            //     alert('Ошибка при создании публикации: ' + (error.message || 'Неизвестная ошибка'));
             }
         } catch (error) {
             console.error('Error:', error);
@@ -164,7 +193,6 @@ const CreatePost: React.FC = () => {
     const handleCancel = () => {
         if (window.confirm('Вы уверены, что хотите отменить создание публикации? Все несохранённые данные будут потеряны.')) {
             setFormData({
-                guid: '00000000-0000-0000-0000-000000000000',
                 Title: '',
                 BodyText: '',
                 Image: ''
@@ -181,18 +209,11 @@ const CreatePost: React.FC = () => {
         <div className="post-form-container">
             <div className="form-header">
                 <h1>Создать публикацию</h1>
+                <p>Поделитесь своими мыслями с сообществом</p>
             </div>
             
             <div className="form-body">
                 <form onSubmit={handleSubmit}>
-                    {/* Hidden input for GUID */}
-                    <input 
-                        type="hidden" 
-                        name="guid" 
-                        value={formData.guid}
-                        onChange={() => {}}
-                    />
-                    
                     {/* Title field */}
                     <div className={`form-group ${errors.Title ? 'error' : ''}`}>
                         <label htmlFor="title">

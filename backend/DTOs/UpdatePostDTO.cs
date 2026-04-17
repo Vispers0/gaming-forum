@@ -7,7 +7,5 @@ namespace backend.DTOs;
 public class UpdatePostDTO
 {
     [Required]
-    public PostType PostType { get; set; }
-    [Required]
     public PostContent PostContent { get; set; }
 }

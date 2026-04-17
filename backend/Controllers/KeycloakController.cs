@@ -17,6 +17,7 @@ public class KeycloakController : ControllerBase
     public async Task<IResult> GetAllUsers()
     {
         var users = await _keycloakService.GetAllUsersAsync();
+
         return TypedResults.Ok(users);
     }
 }
