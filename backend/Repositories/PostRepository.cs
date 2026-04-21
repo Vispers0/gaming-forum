@@ -17,19 +17,25 @@ public class PostRepository : IPostRepository
         _context = context;
     }
 
-    public async Task<List<Post>?> GetPostsAsync()
+    public async Task<List<Post>> GetPostsAsync()
     {
-        List<Post>? posts = await _context.posts
+        List<Post> posts = await _context.posts
             .Include(p => p.PostContent)
             .ToListAsync();
         return posts;
     }
 
-    public async Task<Post?> GetPostAsync(Guid guid)
+    public async Task<Post> GetPostAsync(Guid guid)
     {
         Post? post = await _context.posts
             .Include(p => p.PostContent)
             .FirstOrDefaultAsync(p => p.Guid == guid);
+
+        if (post is null)
+        {
+            throw new KeyNotFoundException($"Post with guid {guid} not found");
+        }
+
         return post;
     }
 

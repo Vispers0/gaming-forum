@@ -7,8 +7,6 @@ public class Post
 {
     public required Guid Guid { get; set; } = Guid.Empty;
     public required Guid AuthorId {get; set;}
-    // public required UserProfile author { get; set; }
-    // public required PostType PostType { get; set; }
     public required PostContent PostContent { get; set; }
     public required DateTime publishDate { get; set; }
     public uint Likes { get; set; }

@@ -23,4 +23,24 @@ public static class PostMappers
             Comments = 0
         };
     }
+
+    public static GetPostDTO ToGetPostDTO(this Post post, int timePosted, string dateType)
+    {
+        return new GetPostDTO
+        {
+            Guid = post.Guid,
+            AuthorId = post.AuthorId,
+            PostContent = new PostContent
+            {
+                guid = post.PostContent.guid,
+                Title = post.PostContent.Title,
+                BodyText = post.PostContent.BodyText,
+                Image = post.PostContent.Image
+            },
+            TimePosted = timePosted,
+            DateType = dateType,
+            Likes = post.Likes,
+            Comments = post.Comments
+        };
+    }
 }

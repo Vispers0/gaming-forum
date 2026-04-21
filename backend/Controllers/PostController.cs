@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers;
 
+using System.Threading.Tasks;
 using backend.DTOs;
 using backend.Mappers;
 using backend.Models;
@@ -30,9 +31,9 @@ public class PostController : ControllerBase
 
     [HttpGet]
     [Route("posts")]
-    public IResult FetchPosts()
+    public async Task<IResult> FetchPosts()
     {
-        List<Post>? posts = _postService.GetPosts(); //todo dto - isLiked = true,false table userid postid
+        List<GetPostDTO> posts = await _postService.GetPosts(); //todo dto - isLiked = true,false table userid postid
 
         if (posts != null && posts.Count > 0)
         {
@@ -46,15 +47,15 @@ public class PostController : ControllerBase
 
     [HttpGet]
     [Route("post/{postId}")]
-    public IResult FetchPost([FromRoute] Guid postId)
+    public async Task<IResult> FetchPost([FromRoute] Guid postId)
     {
-        Post? post = _postService.GetPost(postId);
-
-        if (post != null)
+        try
         {
+            GetPostDTO post = await _postService.GetPost(postId);
+
             return TypedResults.Ok(post);
         }
-        else
+        catch (KeyNotFoundException)
         {
             return TypedResults.NotFound();
         }

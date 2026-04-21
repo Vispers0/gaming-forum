@@ -6,8 +6,8 @@ namespace backend.Interfaces.Repositories;
 
 public interface IPostRepository
 {
-    public Task<List<Post>?> GetPostsAsync();
-    public Task<Post?> GetPostAsync(Guid guid);
+    public Task<List<Post>> GetPostsAsync();
+    public Task<Post> GetPostAsync(Guid guid);
     public void CreatePost(Post post);
     public void UpdatePost(Guid guid, UpdatePostDTO updatePostDTO);
     public Task DeletePost(Guid postId);

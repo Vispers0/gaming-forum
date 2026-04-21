@@ -6,6 +6,8 @@ using Interfaces.Services;
 
 using backend.Interfaces.Repositories;
 using backend.DTOs;
+using backend.Mappers;
+using System.Threading.Tasks;
 
 public class PostService : IPostService
 {
@@ -16,25 +18,42 @@ public class PostService : IPostService
         _postRepository = postRepository;
     }
 
-    public List<Post>? GetPosts()
+    public async Task<List<GetPostDTO>> GetPosts()
     {
-        Task<List<Post>?> posts = _postRepository.GetPostsAsync();
+        List<Post> posts = await _postRepository.GetPostsAsync();
 
-        if (posts.Result != null)
+        List<GetPostDTO> postDTOs = new List<GetPostDTO>();
+        foreach (Post post in posts)
         {
-            return posts.Result;
+            int timePosted = (DateTime.UtcNow - post.publishDate).Days;
+            string dateType = "days";
+            if (timePosted == 0)
+            {
+                timePosted = (DateTime.UtcNow - post.publishDate).Hours;
+                dateType = "hours";
+            }
+
+            postDTOs.Add(post.ToGetPostDTO(timePosted, dateType));
         }
-        else
-        {
-            return new List<Post>();
-        }
+
+        return postDTOs;
     }
 
-    public Post? GetPost(Guid guid)
+    public async Task<GetPostDTO> GetPost(Guid guid)
     {
-        Task<Post?> post = _postRepository.GetPostAsync(guid);
+        Post post = await _postRepository.GetPostAsync(guid);
 
-        return post.Result;
+        int timePosted = (DateTime.UtcNow - post.publishDate).Days;
+        string dateType = "days";
+        if (timePosted == 0)
+        {
+            timePosted = (DateTime.UtcNow - post.publishDate).Hours;
+            dateType = "hours";
+        }
+
+        GetPostDTO postDTO = post.ToGetPostDTO(timePosted, dateType);
+
+        return postDTO;
     }
 
     public void CreatePost(Post post)
