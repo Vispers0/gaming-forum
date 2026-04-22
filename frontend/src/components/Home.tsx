@@ -165,6 +165,7 @@ function Home() {
                 postText={post.postContent.bodyText || ''}
                 likeCount={post.likes}
                 commentCount={post.comments}
+                gameTag="Resident Evil 4 Remake"
               />
             );
           })}
