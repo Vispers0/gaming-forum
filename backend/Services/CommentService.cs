@@ -1,6 +1,7 @@
 using backend.DTOs;
 using backend.Interfaces.Repositories;
 using backend.Interfaces.Services;
+using backend.Mappers;
 using backend.Models;
 
 namespace backend.Services;
@@ -12,6 +13,13 @@ public class CommentService : ICommentService
     public CommentService(ICommentRepository commentRepository)
     {
         _commentRepository = commentRepository;
+    }
+
+    public async Task CreateComment(CreateCommentDTO createCommentDTO, CancellationToken cancellationToken)
+    {
+        Comment commentToAdd = createCommentDTO.ToComment();
+
+        await _commentRepository.CreateComment(commentToAdd, cancellationToken);
     }
 
     public async Task<List<GetCommentDTO>> GetPostComments(Guid postId)

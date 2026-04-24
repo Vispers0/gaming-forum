@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using backend.Data;
 using backend.Interfaces.Repositories;
 using backend.Models;
@@ -12,6 +13,12 @@ public class CommentRepository : ICommentRepository
     public CommentRepository(ApplicationDbContext context)
     {
         _context = context;
+    }
+
+    public async Task CreateComment(Comment commentToAdd, CancellationToken cancellationToken)
+    {
+        await _context.Comments.AddAsync(commentToAdd, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<List<Comment>> GetPostComments(Guid postId)

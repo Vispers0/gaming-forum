@@ -28,4 +28,11 @@ public class CommentController : ControllerBase
 
         return TypedResults.Ok(postComments);
     }
+
+    [HttpPost]
+    public async Task<IResult> CreateComment([FromBody] CreateCommentDTO createCommentDTO, CancellationToken cancellationToken)
+    {
+        await _commentService.CreateComment(createCommentDTO, cancellationToken);
+        return TypedResults.Created();
+    }
 }
