@@ -1,5 +1,6 @@
 // PostOverlay.tsx
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { useKeycloak } from "@react-keycloak-fork/web";
 import "../styles/PostOverlay.css";
 
 import closeIcon from "../assets/Close_LG.svg";
@@ -12,10 +13,12 @@ import downvoteIcon from "../assets/Remove_Minus_Circle.svg";
 
 interface Comment {
     id: string;
+    authorId: string;
     authorName: string;
-    authorAvatar?: string | null;
+    authorAvatar: string;
     content: string;
-    publishDate: string;
+    timePosted: number;
+    dateType: string;
     reputation: number;
 }
 
@@ -37,215 +40,373 @@ interface PostOverlayProps {
     };
 }
 
+const API_BASE = 'http://localhost:8080/api';
+
 function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
+    const { keycloak } = useKeycloak();
+    
+    // Состояния
     const [comments, setComments] = useState<Comment[]>([]);
-    const [isLoadingComments, setIsLoadingComments] = useState(false);
-    const [newComment, setNewComment] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
     const [isSending, setIsSending] = useState(false);
+    const [newCommentText, setNewCommentText] = useState("");
     const [likes, setLikes] = useState(post.likeCount);
     const [isLiked, setIsLiked] = useState(false);
+    
     const commentsEndRef = useRef<HTMLDivElement>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-    useEffect(() => {
-        if (isOpen && post.guid) {
-            fetchComments();
+    // Получение ID текущего пользователя
+    const getCurrentUserId = useCallback((): string | null => {
+        if (keycloak?.authenticated && keycloak.tokenParsed?.sub) {
+            return keycloak.tokenParsed.sub;
         }
-    }, [isOpen, post.guid]);
+        return null;
+    }, [keycloak]);
 
-    useEffect(() => {
-        scrollToBottom();
-    }, [comments]);
+    // Форматирование даты на основе timePosted и dateType
+    const formatDate = useCallback((timePosted: number, dateType: string): string => {
+        switch (dateType) {
+            case 'seconds':
+                return `${timePosted} ${declension(timePosted, ['секунду', 'секунды', 'секунд'])} назад`;
+            case 'minutes':
+                return `${timePosted} ${declension(timePosted, ['минуту', 'минуты', 'минут'])} назад`;
+            case 'hours':
+                return `${timePosted} ${declension(timePosted, ['час', 'часа', 'часов'])} назад`;
+            case 'days':
+                return `${timePosted} ${declension(timePosted, ['день', 'дня', 'дней'])} назад`;
+            default:
+                return 'Недавно';
+        }
+    }, []);
 
-    const fetchComments = async () => {
-        setIsLoadingComments(true);
+    const declension = (number: number, words: [string, string, string]): string => {
+        const cases = [2, 0, 1, 1, 1, 2];
+        return words[(number % 100 > 4 && number % 100 < 20) ? 2 : cases[(number % 10 < 5) ? number % 10 : 5]];
+    };
+
+    // Загрузка комментариев
+    const loadComments = useCallback(async () => {
+        if (!post.guid) return;
+        
+        console.log('Loading comments for post:', post.guid);
+        setIsLoading(true);
+        
         try {
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
-            const mockComments: Comment[] = [
-                {
-                    id: "1",
-                    authorName: "zzgaw",
-                    authorAvatar: null,
-                    content: "Главный дедлайн - это озерное чудовище, к нему нужно успеть к полутора часам, если опоздал можно смело перезаходить. Обязательно срезай через глифы в седьмой главе у стены слева от входа в лагерь и в двенадцатой справа перед крышей с арбалетчиками. Больше всего времени можно потерять на Мендесе в сарае если не использовать гранаты и огонь, а также в водном лабиринте где поможет прыжок-глиф к рычагам. Из оружия бери ТМР и Blacktail, прокачивай в первую очередь магазин и перезарядку.",
-                    publishDate: "23 минуты назад",
-                    reputation: 56
+            const response = await fetch(`${API_BASE}/comments/${post.guid}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                 },
-                {
-                    id: "2",
-                    authorName: "SpeedMaster",
-                    authorAvatar: null,
-                    content: "Добавлю от себя: в главе 8 есть секретный проход через стену сразу после первого элеватора. Это экономит около 5 минут. Также рекомендую сохранить ручные гранаты для финальной битвы с Седлером - 3 гранаты в нужный момент позволяют пропустить целую фазу босса.",
-                    publishDate: "1 час назад",
-                    reputation: 23
-                },
-                {
-                    id: "3",
-                    authorName: "RE4Veteran",
-                    authorAvatar: null,
-                    content: "Важный момент: не забывай про черепа на стенах в замке! Есть один скрытый проход в комнате с рыцарями, который многие пропускают. И ещё - лучше не тратить время на всех врагов в деревне, беги мимо, где возможно.",
-                    publishDate: "3 часа назад",
-                    reputation: 12
-                }
-            ];
+            });
             
-            setComments(mockComments);
+            console.log('Comments response status:', response.status);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('Comments data:', data);
+            
+            if (Array.isArray(data)) {
+                // Загружаем данные авторов для каждого комментария
+                const commentsWithAuthors = await Promise.all(
+                    data.map(async (comment: any, index: number) => {
+                        let authorName = 'Пользователь';
+                        let authorAvatar = noAvatarPicture;
+                        
+                        if (comment.authorId) {
+                            try {
+                                const userRes = await fetch(`${API_BASE}/users/${comment.authorId}`);
+                                if (userRes.ok) {
+                                    const userData = await userRes.json();
+                                    authorName = userData.username || 'Пользователь';
+                                    authorAvatar = userData.profilePicture || noAvatarPicture;
+                                }
+                            } catch (err) {
+                                console.error('Error fetching user:', err);
+                            }
+                        }
+                        
+                        return {
+                            id: comment.id || comment.guid || `temp-${index}`,
+                            authorId: comment.authorId,
+                            authorName,
+                            authorAvatar,
+                            content: comment.commentText || comment.content || '',
+                            timePosted: comment.timePosted || 0,
+                            dateType: comment.dateType || 'seconds',
+                            reputation: comment.reputation || 0,
+                        };
+                    })
+                );
+                
+                setComments(commentsWithAuthors);
+            } else {
+                setComments([]);
+            }
         } catch (error) {
-            console.error("Error fetching comments:", error);
+            console.error('Error loading comments:', error);
+            setComments([]);
         } finally {
-            setIsLoadingComments(false);
+            setIsLoading(false);
         }
-    };
+    }, [post.guid]);
 
-    const scrollToBottom = () => {
-        commentsEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
-
-    const handleLike = async () => {
+    // Отправка комментария
+    const sendComment = useCallback(async () => {
+        const trimmedText = newCommentText.trim();
+        if (!trimmedText) {
+            console.log('Comment text is empty');
+            return;
+        }
+        
+        const userId = getCurrentUserId();
+        if (!userId) {
+            alert('Необходимо авторизоваться');
+            return;
+        }
+        
+        console.log('Sending comment...');
+        setIsSending(true);
+        
         try {
-            const response = await fetch(`http://localhost:8080/api/posts/${post.guid}/like`, {
+            const requestBody = {
+                postId: post.guid,
+                authorId: userId,
+                commentText: trimmedText,
+            };
+            
+            console.log('Request body:', requestBody);
+            
+            const response = await fetch(`${API_BASE}/comments`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody),
+            });
+            
+            console.log('Send comment response status:', response.status);
+            
+            if (response.ok) {
+                console.log('Comment sent successfully, HTTP 201');
+                
+                // Не ждём JSON, так как сервер возвращает только статус 201
+                // Загружаем данные автора
+                let authorName = 'Вы';
+                let authorAvatar = noAvatarPicture;
+                
+                try {
+                    const userRes = await fetch(`${API_BASE}/api/users/${userId}`);
+                    if (userRes.ok) {
+                        const userData = await userRes.json();
+                        authorName = userData.username || 'Вы';
+                        authorAvatar = userData.profilePicture || noAvatarPicture;
+                    }
+                } catch (err) {
+                    console.error('Error fetching current user:', err);
+                }
+                
+                // Создаём новый комментарий с локальными данными
+                const newComment: Comment = {
+                    id: Date.now().toString(),
+                    authorId: userId,
+                    authorName,
+                    authorAvatar,
+                    content: trimmedText,
+                    timePosted: 0,
+                    dateType: 'seconds',
+                    reputation: 0,
+                };
+                
+                setComments(prev => [...prev, newComment]);
+                setNewCommentText("");
+                
+                // Фокус на textarea после отправки
+                setTimeout(() => {
+                    textareaRef.current?.focus();
+                }, 100);
+            } else {
+                const errorText = await response.text();
+                console.error('Failed to send comment:', response.status, errorText);
+                alert('Не удалось отправить комментарий');
+            }
+        } catch (error) {
+            console.error('Error sending comment:', error);
+            alert('Ошибка при отправке комментария');
+        } finally {
+            setIsSending(false);
+        }
+    }, [newCommentText, post.guid, getCurrentUserId]);
+
+    // Обработка лайка поста
+    const handleLike = useCallback(async () => {
+        try {
+            const response = await fetch(`${API_BASE}/api/posts/${post.guid}/like`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
             });
-
+            
             if (response.ok) {
-                if (isLiked) {
-                    setLikes(prev => prev - 1);
-                } else {
-                    setLikes(prev => prev + 1);
-                }
+                setLikes(prev => isLiked ? prev - 1 : prev + 1);
                 setIsLiked(!isLiked);
             }
         } catch (error) {
             console.error('Error liking post:', error);
         }
-    };
+    }, [post.guid, isLiked]);
 
-    const handleVote = async (commentId: string, voteType: 'up' | 'down') => {
+    // Обработка голосования за комментарий
+    const handleVote = useCallback(async (commentId: string, currentRep: number, voteType: 'up' | 'down') => {
         try {
-            // Заглушка - замените на реальный API
-            setComments(prev => prev.map(comment => 
-                comment.id === commentId 
-                    ? { ...comment, reputation: comment.reputation + (voteType === 'up' ? 1 : -1) }
-                    : comment
-            ));
+            const response = await fetch(`${API_BASE}/comments/${commentId}/vote`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ voteType }),
+            });
+            
+            if (response.ok) {
+                setComments(prev => prev.map(c => 
+                    c.id === commentId 
+                        ? { ...c, reputation: currentRep + (voteType === 'up' ? 1 : -1) }
+                        : c
+                ));
+            }
         } catch (error) {
             console.error('Error voting:', error);
         }
-    };
+    }, []);
 
-    const handleSendComment = async () => {
-        if (!newComment.trim()) return;
-        
-        setIsSending(true);
-        try {
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
-            const newCommentObj: Comment = {
-                id: Date.now().toString(),
-                authorName: "Текущий пользователь",
-                authorAvatar: null,
-                content: newComment.trim(),
-                publishDate: "Только что",
-                reputation: 0
-            };
-            
-            setComments(prev => [...prev, newCommentObj]);
-            setNewComment("");
-        } catch (error) {
-            console.error("Error sending comment:", error);
-        } finally {
-            setIsSending(false);
-        }
-    };
-
+    // Обработка нажатия Enter
     const handleKeyPress = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            handleSendComment();
+            sendComment();
         }
     };
+
+    // Прокрутка к последнему комментарию
+    useEffect(() => {
+        if (commentsEndRef.current) {
+            commentsEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [comments]);
+
+    // Загрузка комментариев при открытии
+    useEffect(() => {
+        if (isOpen && post.guid) {
+            console.log('Overlay opened, loading comments...');
+            loadComments();
+        }
+    }, [isOpen, post.guid, loadComments]);
+
+    // Фокус на textarea при открытии
+    useEffect(() => {
+        if (isOpen && textareaRef.current) {
+            setTimeout(() => {
+                textareaRef.current?.focus();
+            }, 100);
+        }
+    }, [isOpen]);
 
     if (!isOpen) return null;
 
     return (
         <div className="overlay-container" onClick={onClose}>
             <div className="overlay-content" onClick={(e) => e.stopPropagation()}>
+                {/* Header */}
                 <div className="overlay-header">
                     <h2>Публикация</h2>
-                    <button className="close-button" onClick={onClose}>
+                    <button className="close-btn" onClick={onClose}>
                         <img src={closeIcon} alt="Закрыть" />
                     </button>
                 </div>
 
-                <div className="overlay-scrollable">
+                {/* Scrollable Content */}
+                <div className="overlay-body">
+                    {/* Post Author */}
                     <div className="post-author">
                         <img 
-                            className="author-avatar" 
                             src={post.authorAvatar || noAvatarPicture} 
                             alt={post.authorName}
+                            className="author-avatar"
                             onError={(e) => {
                                 (e.target as HTMLImageElement).src = noAvatarPicture;
                             }}
                         />
-                        <div className="author-info">
+                        <div className="author-details">
                             <span className="author-name">{post.authorName}</span>
-                            <span className="publish-date">{post.publishDate}</span>
+                            <span className="post-date">{post.publishDate}</span>
                         </div>
                     </div>
 
-                    <div className="post-tags">
-                        {post.gameTag && (
-                            <span className="game-tag">{post.gameTag}</span>
-                        )}
-                        {post.postTypeTag && (
-                            <span className="post-type-tag">{post.postTypeTag}</span>
-                        )}
-                    </div>
-
-                    <h1 className="post-title">{post.postTitle}</h1>
-
-                    {post.postImage && (
-                        <div className="post-image">
-                            <img src={post.postImage} alt="Изображение публикации" />
+                    {/* Tags */}
+                    {(post.gameTag || post.postTypeTag) && (
+                        <div className="post-tags">
+                            {post.gameTag && <span className="tag game-tag">{post.gameTag}</span>}
+                            {post.postTypeTag && <span className="tag type-tag">{post.postTypeTag}</span>}
                         </div>
                     )}
 
-                    <div className="post-full-text">
+                    {/* Title */}
+                    <h1 className="post-title">{post.postTitle}</h1>
+
+                    {/* Image */}
+                    {post.postImage && (
+                        <div className="post-image">
+                            <img src={post.postImage} alt="Post" />
+                        </div>
+                    )}
+
+                    {/* Text */}
+                    <div className="post-text">
                         <p>{post.postText}</p>
                     </div>
 
+                    {/* Stats */}
                     <div className="post-stats">
                         <button 
-                            className={`stat-button like-button ${isLiked ? 'liked' : ''}`}
+                            className={`stat-btn like-btn ${isLiked ? 'active' : ''}`}
                             onClick={handleLike}
                         >
-                            <img src={likeIcon} alt="Нравится" />
+                            <img src={likeIcon} alt="Like" />
                             <span>{likes}</span>
                         </button>
-                        <div className="stat-button">
-                            <img src={commentIcon} alt="Комментарии" />
+                        <div className="stat-btn">
+                            <img src={commentIcon} alt="Comments" />
                             <span>{comments.length}</span>
                         </div>
                     </div>
 
+                    {/* Comments Section */}
                     <div className="comments-section">
                         <h3>Комментарии ({comments.length})</h3>
                         
-                        {isLoadingComments ? (
-                            <div className="loading-comments">
+                        {isLoading ? (
+                            <div className="loading-state">
                                 <div className="spinner"></div>
                                 <p>Загрузка комментариев...</p>
+                            </div>
+                        ) : comments.length === 0 ? (
+                            <div className="empty-state">
+                                <p>Нет комментариев</p>
+                                <p className="empty-hint">Будьте первым, кто оставит комментарий!</p>
                             </div>
                         ) : (
                             <div className="comments-list">
                                 {comments.map((comment) => (
-                                    <div key={comment.id} className="comment-item">
+                                    <div key={comment.id} className="comment">
                                         <img 
-                                            className="comment-avatar" 
-                                            src={comment.authorAvatar || noAvatarPicture}
+                                            src={comment.authorAvatar} 
                                             alt={comment.authorName}
+                                            className="comment-avatar"
                                             onError={(e) => {
                                                 (e.target as HTMLImageElement).src = noAvatarPicture;
                                             }}
@@ -253,14 +414,16 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
                                         <div className="comment-content">
                                             <div className="comment-header">
                                                 <span className="comment-author">{comment.authorName}</span>
-                                                <span className="comment-date">{comment.publishDate}</span>
+                                                <span className="comment-date">
+                                                    {formatDate(comment.timePosted, comment.dateType)}
+                                                </span>
                                             </div>
                                             <p className="comment-text">{comment.content}</p>
-                                            <div className="comment-actions">
-                                                <div className="reputation-control">
+                                            <div className="comment-footer">
+                                                <div className="reputation">
                                                     <button 
                                                         className="reputation-up"
-                                                        onClick={() => handleVote(comment.id, 'up')}
+                                                        onClick={() => handleVote(comment.id, comment.reputation, 'up')}
                                                     >
                                                         <img src={upvoteIcon} alt="+" />
                                                     </button>
@@ -269,12 +432,12 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
                                                     </span>
                                                     <button 
                                                         className="reputation-down"
-                                                        onClick={() => handleVote(comment.id, 'down')}
+                                                        onClick={() => handleVote(comment.id, comment.reputation, 'down')}
                                                     >
                                                         <img src={downvoteIcon} alt="-" />
                                                     </button>
                                                 </div>
-                                                <button className="comment-reply">Ответить</button>
+                                                <button className="reply-btn">Ответить</button>
                                             </div>
                                         </div>
                                     </div>
@@ -285,21 +448,24 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
                     </div>
                 </div>
 
-                <div className="comment-input-area">
+                {/* Comment Input */}
+                <div className="comment-input-container">
                     <textarea
+                        ref={textareaRef}
                         className="comment-input"
-                        placeholder="Ваше сообщение"
-                        value={newComment}
-                        onChange={(e) => setNewComment(e.target.value)}
+                        placeholder="Напишите комментарий..."
+                        value={newCommentText}
+                        onChange={(e) => setNewCommentText(e.target.value)}
                         onKeyPress={handleKeyPress}
-                        rows={3}
+                        rows={2}
+                        disabled={isSending}
                     />
                     <button 
-                        className="send-button"
-                        onClick={handleSendComment}
-                        disabled={isSending || !newComment.trim()}
+                        className="send-btn"
+                        onClick={sendComment}
+                        disabled={isSending || !newCommentText.trim()}
                     >
-                        <img src={sendIcon} alt="Отправить" />
+                        <img src={sendIcon} alt="Send" />
                         <span>{isSending ? "Отправка..." : "Отправить"}</span>
                     </button>
                 </div>

@@ -22,7 +22,7 @@ interface PostProps {
     postTypeTag?: string;
 }
 
-function Post({ 
+function Post({
     guid,
     authorName,
     authorAvatar,
@@ -85,9 +85,9 @@ function Post({
         <>
             <div className="post-body" onClick={handleOpenOverlay}>
                 <div className="author-label">
-                    <img 
-                        className="profile-picture" 
-                        src={avatar} 
+                    <img
+                        className="profile-picture"
+                        src={avatar}
                         alt="Фото профиля пользователя"
                         onError={(e) => {
                             (e.target as HTMLImageElement).src = noAvatarPicture;
@@ -96,7 +96,7 @@ function Post({
                     <span className="author-name">
                         {authorName}
                     </span>
-                    <div className="circle-decoration"/>
+                    <div className="circle-decoration" />
                     <span className="publish-date-label">
                         {publishDate}
                     </span>
@@ -114,8 +114,8 @@ function Post({
                 </span>
                 <div className="post-content">
                     {postImage && (
-                        <img 
-                            src={postImage} 
+                        <img
+                            src={postImage}
                             alt="Картинка публикации"
                             onError={(e) => {
                                 (e.target as HTMLImageElement).style.display = 'none';
@@ -128,15 +128,15 @@ function Post({
                     </p>
                 </div>
                 <div className="interactions-container" onClick={(e) => e.stopPropagation()}>
-                    <button 
+                    <button
                         className={`like-button ${isLiked ? 'liked' : ''}`}
                         onClick={handleLike}
                     >
-                        <img src={likeIcon} alt="Нравится"/>
+                        <img src={likeIcon} alt="Нравится" />
                         <span>{likes}</span>
                     </button>
                     <button className="comment-button">
-                        <img src={commentIcon} alt="Комментарии"/>
+                        <img src={commentIcon} alt="Комментарии" />
                         <span>{commentCount}</span>
                     </button>
                 </div>
@@ -145,7 +145,7 @@ function Post({
             <PostOverlay
                 isOpen={isOverlayOpen}
                 onClose={handleCloseOverlay}
-                post={{
+                    post={{
                     guid,
                     authorName,
                     authorAvatar,
