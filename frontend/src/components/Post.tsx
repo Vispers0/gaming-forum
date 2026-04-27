@@ -57,12 +57,19 @@ function Post({
     useEffect(() => {
         const checkIfLiked = async () => {
             const userId = getCurrentUserId();
+            console.log('Checking like status - authenticated:', keycloak?.authenticated, 'userId:', userId);
+            
             if (!userId) {
+                console.log('No userId, setting isLiked to false');
+                setIsLiked(false);
                 setIsCheckingLike(false);
                 return;
             }
 
+            setIsCheckingLike(true);
+            
             try {
+                console.log(`Checking like status for post ${guid}, user ${userId}`);
                 const response = await fetch(`${API_BASE}/likes/check?userId=${userId}&postId=${guid}`, {
                     method: 'GET',
                     headers: {
@@ -70,19 +77,29 @@ function Post({
                     },
                 });
 
+                console.log('Check like response status:', response.status);
+
                 if (response.ok) {
-                    const data = await response.json();
-                    setIsLiked(data.isLiked || false);
+                    const textResponse = await response.text();
+                    console.log('Raw response:', textResponse);
+                    
+                    const isLikedValue = textResponse === 'true';
+                    setIsLiked(isLikedValue);
+                    console.log('Is liked:', isLikedValue);
+                } else {
+                    console.error('Check like failed with status:', response.status);
+                    setIsLiked(false);
                 }
             } catch (error) {
                 console.error('Error checking like status:', error);
+                setIsLiked(false);
             } finally {
                 setIsCheckingLike(false);
             }
         };
 
         checkIfLiked();
-    }, [guid]);
+    }, [guid, keycloak?.authenticated]); // Добавлена зависимость от authenticated
 
     // Получаем первые 3 предложения для превью
     const getPreviewText = (text: string, sentencesCount: number = 3): string => {
@@ -104,8 +121,7 @@ function Post({
 
         try {
             if (!isLiked) {
-                // Ставим лайк
-                // 1. Создаём запись о лайке
+                console.log('Adding like...');
                 const likeResponse = await fetch(`${API_BASE}/likes`, {
                     method: 'POST',
                     headers: {
@@ -117,11 +133,12 @@ function Post({
                     }),
                 });
 
+                console.log('Create like response:', likeResponse.status);
+
                 if (!likeResponse.ok) {
                     throw new Error('Failed to create like');
                 }
 
-                // 2. Обновляем счётчик лайков поста (isDislike = false - ставим лайк)
                 const patchResponse = await fetch(`${API_BASE}/like/post`, {
                     method: 'PATCH',
                     headers: {
@@ -133,13 +150,14 @@ function Post({
                     }),
                 });
 
+                console.log('Patch like response (add):', patchResponse.status);
+
                 if (patchResponse.ok) {
                     setLikes(prev => prev + 1);
                     setIsLiked(true);
                 }
             } else {
-                // Убираем лайк
-                // 1. Удаляем запись о лайке
+                console.log('Removing like...');
                 const deleteResponse = await fetch(`${API_BASE}/likes`, {
                     method: 'DELETE',
                     headers: {
@@ -151,11 +169,12 @@ function Post({
                     }),
                 });
 
+                console.log('Delete like response:', deleteResponse.status);
+
                 if (!deleteResponse.ok) {
                     throw new Error('Failed to delete like');
                 }
 
-                // 2. Обновляем счётчик лайков поста (isDislike = true - убираем лайк)
                 const patchResponse = await fetch(`${API_BASE}/like/post`, {
                     method: 'PATCH',
                     headers: {
@@ -166,6 +185,8 @@ function Post({
                         isDislike: true
                     }),
                 });
+
+                console.log('Patch like response (remove):', patchResponse.status);
 
                 if (patchResponse.ok) {
                     setLikes(prev => Math.max(0, prev - 1));

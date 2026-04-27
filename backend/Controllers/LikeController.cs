@@ -1,5 +1,6 @@
 using backend.DTOs;
 using backend.Interfaces.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers;
@@ -13,6 +14,14 @@ public class LikeController
     public LikeController(ILikeService likeService)
     {
         _likeService = likeService;
+    }
+
+    [HttpGet]
+    [Route("check")]
+    public async Task<IResult> CheckPostLike([FromQuery] Guid userId, [FromQuery] Guid postId, CancellationToken cancellationToken)
+    {
+        bool isLiked = await _likeService.CheckPostLiked(userId, postId, cancellationToken);
+        return TypedResults.Ok(isLiked);
     }
 
     [HttpGet]

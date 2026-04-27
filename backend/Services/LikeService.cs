@@ -15,6 +15,12 @@ public class LikeService : ILikeService
         _likeRepository = likeRepository;
     }
 
+    public async Task<bool> CheckPostLiked(Guid userId, Guid postId, CancellationToken cancellationToken)
+    {
+        bool isLiked = await _likeRepository.CheckPostLiked(userId, postId, cancellationToken);
+        return isLiked;
+    }
+
     public async Task CreateLike(CreateLikeDTO createLikeDTO, CancellationToken cancellationToken)
     {
         Like likeToAdd = createLikeDTO.ToLike();

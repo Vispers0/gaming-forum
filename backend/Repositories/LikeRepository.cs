@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using backend.Data;
 using backend.Interfaces.Repositories;
 using backend.Models;
@@ -12,6 +13,13 @@ public class LikeRepository : ILikeRepository
     public LikeRepository(ApplicationDbContext context)
     {
         _context = context;
+    }
+
+    public async Task<bool> CheckPostLiked(Guid userId, Guid postId, CancellationToken cancellationToken)
+    {
+        var like = await _context.Likes.FirstOrDefaultAsync(l => l.UserId == userId && l.PostId == postId);
+        bool isLiked = like != null;
+        return isLiked;
     }
 
     public async Task CreateLike(Like like, CancellationToken cancellationToken)
