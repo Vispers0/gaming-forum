@@ -93,4 +93,12 @@ public class PostController : ControllerBase
 
         return TypedResults.Ok(_postService.GetPost(postId));
     }
+
+    [HttpPatch]
+    [Route("like/post/")]
+    public async Task<IResult> LikePost([FromBody] LikePostDTO likePostDTO, CancellationToken cancellationToken)
+    {
+        await _postService.LikePost(likePostDTO, cancellationToken);
+        return TypedResults.Ok();
+    }
 }

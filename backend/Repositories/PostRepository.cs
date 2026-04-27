@@ -62,9 +62,28 @@ public class PostRepository : IPostRepository
 
     public async Task DeletePost(Guid postId) //.ExecuteDeleteAsync();
     {
-        // _context.posts.Remove(post);
-        // _context.SaveChanges();
         await _context.posts.Where(p => p.Guid == postId).ExecuteDeleteAsync();
+    }
+
+    public async Task LikePost(Guid postId, bool isDislike, CancellationToken cancellationToken)
+    {
+        Post? postToChange = await _context.posts.FirstOrDefaultAsync(p => p.Guid == postId);
+
+        if (postToChange is null)
+        {
+            throw new KeyNotFoundException($"Post with guid {postId} not found");
+        }
+
+        if (isDislike)
+        {
+            postToChange.Likes -= 1;
+        }
+        else
+        {
+            postToChange.Likes += 1;
+        }
+
+        await _context.SaveChangesAsync();
     }
 
     // todo метод для получения статей по конкретному тегу

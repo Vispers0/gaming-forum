@@ -10,5 +10,6 @@ public interface IPostRepository
     public Task<Post> GetPostAsync(Guid guid);
     public void CreatePost(Post post);
     public void UpdatePost(Guid guid, UpdatePostDTO updatePostDTO);
+    public Task LikePost(Guid postId, bool isDislike, CancellationToken cancellationToken);
     public Task DeletePost(Guid postId);
 }

@@ -8,6 +8,7 @@ using backend.Interfaces.Repositories;
 using backend.DTOs;
 using backend.Mappers;
 using System.Threading.Tasks;
+using System.Threading;
 
 public class PostService : IPostService
 {
@@ -69,5 +70,10 @@ public class PostService : IPostService
     public void DeletePost(Guid guid)
     {
         _postRepository.DeletePost(guid);
+    }
+
+    public async Task LikePost(LikePostDTO likePostDTO, CancellationToken cancellationToken)
+    {
+        await _postRepository.LikePost(likePostDTO.PostId, likePostDTO.IsDislike, cancellationToken);
     }
 }
