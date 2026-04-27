@@ -55,6 +55,8 @@ public class Program
         builder.Services.AddScoped<IKeycloakService, KeycloakService>();
         builder.Services.AddScoped<ICommentRepository, CommentRepository>();
         builder.Services.AddScoped<ICommentService, CommentService>();
+        builder.Services.AddScoped<ILikeRepository, LikeRepository>();
+        builder.Services.AddScoped<ILikeService, LikeService>();
 
         builder.Services.AddCors(options =>
 {
