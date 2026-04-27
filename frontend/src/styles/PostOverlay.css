@@ -188,6 +188,8 @@
     margin-bottom: 24px;
 }
 
+/* PostOverlay.css - обновите стили like-btn */
+
 .stat-btn {
     display: flex;
     align-items: center;
@@ -214,11 +216,12 @@
 }
 
 .like-btn.active {
-    background-color: #E74C3C;
+    background-color: #FF4500;
+    color: #FFFFFF;
 }
 
 .like-btn.active:hover {
-    background-color: #c0392b;
+    background-color: #E63E00;
 }
 
 /* Comments Section */

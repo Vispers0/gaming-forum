@@ -78,6 +78,7 @@
     margin-bottom: 14px;
 }
 
+/* Базовые стили для всех кнопок в контейнере */
 .interactions-container button {
     display: flex;
     flex-direction: row;
@@ -85,7 +86,6 @@
     align-items: center;
     border-radius: 30px;
     padding: 8px;
-    background: #5A5A5A;
     border: none;
     cursor: pointer;
 }
@@ -93,12 +93,58 @@
 .interactions-container button img {
     width: 48px;
     height: 48px;
-    filter: brightness(1);
 }
 
-.interactions-container button span{
+.interactions-container button span {
     font-size: 20px;
+}
+
+/* Стили для кнопки комментария */
+.interactions-container button.comment-button {
+    background-color: #5A5A5A;
+}
+
+.interactions-container button.comment-button span {
     color: #FFFFFF;
+}
+
+.interactions-container button.comment-button:hover {
+    background-color: #4A4A4A;
+}
+
+/* Стили для кнопки лайка */
+.interactions-container button.like-button {
+    background-color: #5A5A5A;
+}
+
+.interactions-container button.like-button span {
+    color: #FFFFFF;
+}
+
+.interactions-container button.like-button:hover {
+    background-color: #4A4A4A;
+}
+
+/* Активное состояние лайка */
+.interactions-container button.like-button.liked {
+    background-color: #FF4500;
+}
+
+.interactions-container button.like-button.liked span {
+    color: #FFFFFF;
+}
+
+.interactions-container button.like-button.liked:hover {
+    background-color: #E63E00;
+}
+
+.interactions-container button.like-button img {
+    filter: brightness(0) invert(1);
+}
+
+.interactions-container button.like-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 .read-more {

@@ -200,7 +200,7 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
                 let authorAvatar = noAvatarPicture;
                 
                 try {
-                    const userRes = await fetch(`${API_BASE}/api/users/${userId}`);
+                    const userRes = await fetch(`${API_BASE}/users/${userId}`);
                     if (userRes.ok) {
                         const userData = await userRes.json();
                         authorName = userData.username || 'Вы';
@@ -243,23 +243,90 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
     }, [newCommentText, post.guid, getCurrentUserId]);
 
     // Обработка лайка поста
-    const handleLike = useCallback(async () => {
-        try {
-            const response = await fetch(`${API_BASE}/api/posts/${post.guid}/like`, {
+// В PostOverlay.tsx, замените функцию handleLike на эту:
+
+const handleLike = useCallback(async () => {
+    const userId = getCurrentUserId();
+    if (!userId) {
+        alert('Необходимо авторизоваться');
+        return;
+    }
+
+    try {
+        if (!isLiked) {
+            // Ставим лайк
+            // 1. Создаём запись о лайке
+            const likeResponse = await fetch(`${API_BASE}/likes`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                body: JSON.stringify({
+                    userId: userId,
+                    postId: post.guid
+                }),
             });
-            
-            if (response.ok) {
-                setLikes(prev => isLiked ? prev - 1 : prev + 1);
-                setIsLiked(!isLiked);
+
+            if (!likeResponse.ok) {
+                throw new Error('Failed to create like');
             }
-        } catch (error) {
-            console.error('Error liking post:', error);
+
+            // 2. Обновляем счётчик лайков поста (isDislike = false - ставим лайк)
+            const patchResponse = await fetch(`${API_BASE}/like/post`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    postId: post.guid,
+                    isDislike: false
+                }),
+            });
+
+            if (patchResponse.ok) {
+                setLikes(prev => prev + 1);
+                setIsLiked(true);
+            }
+        } else {
+            // Убираем лайк
+            // 1. Удаляем запись о лайке
+            const deleteResponse = await fetch(`${API_BASE}/likes`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: userId,
+                    postId: post.guid
+                }),
+            });
+
+            if (!deleteResponse.ok) {
+                throw new Error('Failed to delete like');
+            }
+
+            // 2. Обновляем счётчик лайков поста (isDislike = true - убираем лайк)
+            const patchResponse = await fetch(`${API_BASE}/like/post`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    postId: post.guid,
+                    isDislike: true
+                }),
+            });
+
+            if (patchResponse.ok) {
+                setLikes(prev => Math.max(0, prev - 1));
+                setIsLiked(false);
+            }
         }
-    }, [post.guid, isLiked]);
+    } catch (error) {
+        console.error('Error liking post:', error);
+        alert('Не удалось обработать лайк');
+    }
+}, [post.guid, isLiked, getCurrentUserId]);
 
     // Обработка голосования за комментарий
     const handleVote = useCallback(async (commentId: string, currentRep: number, voteType: 'up' | 'down') => {
