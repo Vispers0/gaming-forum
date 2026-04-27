@@ -1,6 +1,7 @@
 using backend.Data;
 using backend.Interfaces.Repositories;
 using backend.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend.Repositories;
 
@@ -19,8 +20,19 @@ public class LikeRepository : ILikeRepository
         await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public Task RemoveLike(Like like, CancellationToken cancellationToken)
+    public async Task RemoveLike(Guid likeId, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        await _context.Likes.Where(l => l.Guid == likeId).ExecuteDeleteAsync();
+    }
+
+    public async Task<List<Like>> GetPostLikes(Guid postId, CancellationToken cancellationToken)
+    {
+        List<Like> likes = await _context.Likes.Where(l => l.PostId == postId).ToListAsync();
+        return likes;
+    }
+
+    public async Task RemoveLike(Guid userId, Guid postId, CancellationToken cancellationToken)
+    {
+        await _context.Likes.Where(l => l.UserId == userId && l.PostId == postId).ExecuteDeleteAsync();
     }
 }

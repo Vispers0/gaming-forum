@@ -21,8 +21,26 @@ public class LikeService : ILikeService
         await _likeRepository.CreateLike(likeToAdd, cancellationToken);
     }
 
-    public Task RemoveLike()
+    public async Task<List<GetLikeDTO>> GetPostLikes(Guid postId, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        List<Like> likes = await _likeRepository.GetPostLikes(postId, cancellationToken);
+        List<GetLikeDTO> likeDTOs = new List<GetLikeDTO>();
+
+        foreach(Like like in likes)
+        {
+            likeDTOs.Add(like.ToGetLikeDTO());
+        }
+
+        return likeDTOs;
+    }
+
+    public async Task RemoveLike(Guid likeId, CancellationToken cancellationToken)
+    {
+        await _likeRepository.RemoveLike(likeId, cancellationToken);
+    }
+
+    public async Task RemoveLike(RemoveLikeDTO removeLikeDTO, CancellationToken cancellationToken)
+    {
+        await _likeRepository.RemoveLike(removeLikeDTO.userId, removeLikeDTO.postId, cancellationToken);
     }
 }

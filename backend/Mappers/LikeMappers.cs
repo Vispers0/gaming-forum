@@ -14,4 +14,12 @@ public static class LikeMappers
             PostId = createLikeDTO.PostId
         };
     }
+
+    public static GetLikeDTO ToGetLikeDTO(this Like like)
+    {
+        return new GetLikeDTO
+        {
+            Guid = like.Guid
+        };
+    }
 }
