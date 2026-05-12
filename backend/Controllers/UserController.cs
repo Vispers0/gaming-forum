@@ -29,4 +29,12 @@ public class UserController : ControllerBase
             return TypedResults.NotFound();
         }
     }
+
+    [HttpPatch]
+    [Route("{userId}")]
+    public IResult UpdateUser([FromRoute] Guid userId, [FromBody] UpdateUserDTO userDto)
+    {
+        _userService.UpdateUser(userId, userDto);
+        return TypedResults.Ok();
+    }
 }

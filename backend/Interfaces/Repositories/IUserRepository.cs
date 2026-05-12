@@ -1,3 +1,4 @@
+using backend.DTOs;
 using backend.Models;
 
 namespace backend.Interfaces.Repositories;
@@ -5,4 +6,5 @@ namespace backend.Interfaces.Repositories;
 public interface IUserRepository
 {
     public Task<UserProfile> GetUserAsync(Guid userId);
+    public Task UpdateUserAsync(Guid  userId, UpdateUserDTO user);
 }

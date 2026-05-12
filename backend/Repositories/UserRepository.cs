@@ -1,4 +1,5 @@
 using backend.Data;
+using backend.DTOs;
 using backend.Interfaces.Repositories;
 using backend.Mappers;
 using backend.Models;
@@ -25,5 +26,19 @@ public class UserRepository : IUserRepository
         }
 
         return user;
+    }
+
+    public async Task UpdateUserAsync(Guid userId, UpdateUserDTO user)
+    {
+        UserProfile? userToUpdate = await _context.userProfiles.FirstOrDefaultAsync(u => u.guid == userId);
+
+        if (userToUpdate is null)
+        {
+            throw new KeyNotFoundException();
+        }
+        
+        userToUpdate.ProfilePicture = user.ProfilePicture;
+        
+        await _context.SaveChangesAsync();
     }
 }

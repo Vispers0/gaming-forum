@@ -20,4 +20,9 @@ public class UserService : IUserService
         UserProfile user = await _userRepository.GetUserAsync(userId);
         return user.ToUserDTO();
     }
+
+    public Task UpdateUser(Guid guid, UpdateUserDTO user)
+    {
+        return _userRepository.UpdateUserAsync(guid, user);
+    }
 }
