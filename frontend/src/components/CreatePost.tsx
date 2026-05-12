@@ -12,17 +12,21 @@ interface PostContent {
 
 interface CreatePostRequest {
     AuthorId: string;
+    GameTag: string;
     PostContent: PostContent;
 }
 
 const CreatePost: React.FC = () => {
     const { keycloak } = useKeycloak();
-    
+
     const [formData, setFormData] = useState<PostContent>({
         Title: '',
         BodyText: '',
         Image: ''
     });
+
+    const [gameTag, setGameTag] = useState<string>('');
+    const [gameTagError, setGameTagError] = useState<string>('');
 
     const [errors, setErrors] = useState({
         Title: '',
@@ -46,9 +50,17 @@ const CreatePost: React.FC = () => {
     const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
-        
+
         if (errors[name as keyof typeof errors]) {
             setErrors(prev => ({ ...prev, [name]: '' }));
+        }
+    };
+
+    // Обработка изменения GameTag
+    const handleGameTagChange = (e: ChangeEvent<HTMLInputElement>) => {
+        setGameTag(e.target.value);
+        if (gameTagError) {
+            setGameTagError('');
         }
     };
 
@@ -123,6 +135,17 @@ const CreatePost: React.FC = () => {
             isValid = false;
         }
 
+        if (!gameTag.trim()) {
+            setGameTagError('Укажите название игры');
+            isValid = false;
+        } else if (gameTag.length < 2) {
+            setGameTagError('Название игры должно содержать минимум 2 символа');
+            isValid = false;
+        } else if (gameTag.length > 100) {
+            setGameTagError('Название игры не должно превышать 100 символов');
+            isValid = false;
+        }
+
         if (formData.BodyText && formData.BodyText.length > 5000) {
             newErrors.BodyText = 'Текст не должен превышать 5000 символов';
             isValid = false;
@@ -132,10 +155,10 @@ const CreatePost: React.FC = () => {
         return isValid;
     };
 
-    // Отправка формы - изменённый формат запроса
+    // Отправка формы
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        
+
         if (!validateForm()) {
             return;
         }
@@ -143,9 +166,10 @@ const CreatePost: React.FC = () => {
         setIsLoading(true);
 
         try {
-            // Формируем тело запроса в нужном формате
+            // Формируем тело запроса с GameTag
             const requestData: CreatePostRequest = {
                 AuthorId: getAuthorId(),
+                GameTag: gameTag.trim(),
                 PostContent: {
                     Title: formData.Title,
                     BodyText: formData.BodyText || null,
@@ -164,23 +188,23 @@ const CreatePost: React.FC = () => {
             });
 
             if (response.ok) {
-            //     const result = await response.json();
-            //     console.log('Post created:', result);
-                 alert('Публикация успешно создана!');
-                
+                alert('Публикация успешно создана!');
+
                 // Сброс формы
                 setFormData({
                     Title: '',
                     BodyText: '',
                     Image: ''
                 });
+                setGameTag('');
                 setImagePreview('');
                 if (fileInputRef.current) {
                     fileInputRef.current.value = '';
                 }
-            // } else {
-            //     const error = await response.json();
-            //     alert('Ошибка при создании публикации: ' + (error.message || 'Неизвестная ошибка'));
+            } else {
+                const error = await response.text();
+                console.error('Error response:', error);
+                alert('Ошибка при создании публикации');
             }
         } catch (error) {
             console.error('Error:', error);
@@ -197,8 +221,10 @@ const CreatePost: React.FC = () => {
                 BodyText: '',
                 Image: ''
             });
+            setGameTag('');
             setImagePreview('');
             setErrors({ Title: '', BodyText: '', Image: '' });
+            setGameTagError('');
             if (fileInputRef.current) {
                 fileInputRef.current.value = '';
             }
@@ -211,17 +237,40 @@ const CreatePost: React.FC = () => {
                 <h1>Создать публикацию</h1>
                 <p>Поделитесь своими мыслями с сообществом</p>
             </div>
-            
+
             <div className="form-body">
                 <form onSubmit={handleSubmit}>
+                    {/* Game Tag field - input */}
+                    <div className="form-group">
+                        <label htmlFor="gameTag">
+                            Игра
+                            <span className="required">*</span>
+                        </label>
+                        <input
+                            type="text"
+                            id="gameTag"
+                            name="GameTag"
+                            className="form-input"
+                            value={gameTag}
+                            onChange={handleGameTagChange}
+                            placeholder="Введите название игры (например, Resident Evil 4 Remake)"
+                            maxLength={100}
+                            required
+                        />
+                        <div className="char-counter">
+                            <span>{gameTag.length}</span> / 100
+                        </div>
+                        {gameTagError && <span className="error-message">{gameTagError}</span>}
+                    </div>
+
                     {/* Title field */}
                     <div className={`form-group ${errors.Title ? 'error' : ''}`}>
                         <label htmlFor="title">
                             Заголовок
                             <span className="required">*</span>
                         </label>
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             id="title"
                             name="Title"
                             className="form-input"
@@ -236,13 +285,13 @@ const CreatePost: React.FC = () => {
                         </div>
                         {errors.Title && <span className="error-message">{errors.Title}</span>}
                     </div>
-                    
+
                     {/* Body text field */}
                     <div className={`form-group ${errors.BodyText ? 'error' : ''}`}>
                         <label htmlFor="bodyText">
                             Текст публикации
                         </label>
-                        <textarea 
+                        <textarea
                             id="bodyText"
                             name="BodyText"
                             className="form-textarea"
@@ -257,11 +306,11 @@ const CreatePost: React.FC = () => {
                         </div>
                         {errors.BodyText && <span className="error-message">{errors.BodyText}</span>}
                     </div>
-                    
+
                     {/* Image upload field */}
                     <div className="form-group">
                         <label>Изображение</label>
-                        <div 
+                        <div
                             className="image-upload-area"
                             onClick={() => fileInputRef.current?.click()}
                             onDragOver={handleDragOver}
@@ -276,9 +325,9 @@ const CreatePost: React.FC = () => {
                                 Поддерживаются форматы: JPG, PNG, GIF, WEBP (макс. 10MB)
                             </div>
                         </div>
-                        <input 
+                        <input
                             ref={fileInputRef}
-                            type="file" 
+                            type="file"
                             id="imageInput"
                             accept="image/*"
                             style={{ display: 'none' }}
@@ -287,8 +336,8 @@ const CreatePost: React.FC = () => {
                         {imagePreview && (
                             <div className="image-preview">
                                 <img src={imagePreview} alt="Preview" />
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     className="remove-image"
                                     onClick={removeImage}
                                 >
@@ -298,18 +347,18 @@ const CreatePost: React.FC = () => {
                         )}
                         {errors.Image && <span className="error-message">{errors.Image}</span>}
                     </div>
-                    
+
                     {/* Form actions */}
                     <div className="form-actions">
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             className="btn btn-secondary"
                             onClick={handleCancel}
                         >
                             Отмена
                         </button>
-                        <button 
-                            type="submit" 
+                        <button
+                            type="submit"
                             className={`btn btn-primary ${isLoading ? 'loading' : ''}`}
                             disabled={isLoading}
                         >

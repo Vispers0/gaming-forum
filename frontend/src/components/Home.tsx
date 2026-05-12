@@ -13,6 +13,7 @@ interface PostContent {
 interface GetPostDTO {
   guid: string;
   authorId: string;
+  gameTag: string;
   postContent: PostContent;
   timePosted: number;
   dateType: string;
@@ -102,7 +103,6 @@ function Home() {
           const userData: UserProfile = await response.json();
           authorsMap.set(authorId, userData);
         } else if (response.status === 204) {
-          // Пользователь не найден, используем дефолтные данные
           authorsMap.set(authorId, {
             username: 'Пользователь',
             profilePicture: null
@@ -239,7 +239,7 @@ function Home() {
                     postText={post.postContent.bodyText || ''}
                     likeCount={post.likes}
                     commentCount={post.comments}
-                    gameTag="Resident Evil 4 Remake"
+                    gameTag={post.gameTag}
                 />
             );
           })}
