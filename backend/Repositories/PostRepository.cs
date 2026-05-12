@@ -21,6 +21,7 @@ public class PostRepository : IPostRepository
     {
         List<Post> posts = await _context.posts
             .Include(p => p.PostContent)
+            .OrderByDescending(p => p.publishDate)
             .ToListAsync();
         return posts;
     }
@@ -92,6 +93,7 @@ public class PostRepository : IPostRepository
             .Include(p => p.PostContent)
             .Where(p => p.PostContent.Title.Contains(searchCriteria) || 
                 p.PostContent.BodyText!.Contains(searchCriteria))
+            .OrderByDescending(p => p.publishDate)
             .ToListAsync();
         
         return foundPosts;
@@ -102,6 +104,7 @@ public class PostRepository : IPostRepository
         List<Post> postsWithTag = await _context.posts
             .Include(p => p.PostContent)
             .Where(p => p.GameTag == tag)
+            .OrderByDescending(p => p.publishDate)
             .ToListAsync();
         
         return postsWithTag;
