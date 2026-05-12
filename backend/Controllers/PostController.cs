@@ -101,4 +101,18 @@ public class PostController : ControllerBase
         await _postService.LikePost(likePostDTO, cancellationToken);
         return TypedResults.Ok();
     }
+
+    [HttpGet]
+    [Route("posts/search")]
+    public async Task<IResult> SearchPosts([FromQuery] string searchCriteria)
+    {
+        var posts = await _postService.SearchPosts(searchCriteria);
+        
+        if (posts.Count > 0)
+        {
+            return TypedResults.Ok(posts);
+        }
+
+        return TypedResults.NoContent();
+    }
 }

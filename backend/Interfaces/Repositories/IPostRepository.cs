@@ -11,5 +11,6 @@ public interface IPostRepository
     public void CreatePost(Post post);
     public void UpdatePost(Guid guid, UpdatePostDTO updatePostDTO);
     public Task LikePost(Guid postId, bool isDislike, CancellationToken cancellationToken);
+    public Task<List<Post>> SearchPosts(string searchCriteria);
     public Task DeletePost(Guid postId);
 }

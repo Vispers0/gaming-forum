@@ -86,6 +86,17 @@ public class PostRepository : IPostRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task<List<Post>> SearchPosts(string searchCriteria)
+    {
+        List<Post> foundPosts = await _context.posts
+            .Include(p => p.PostContent)
+            .Where(p => p.PostContent.Title.Contains(searchCriteria) || 
+                p.PostContent.BodyText!.Contains(searchCriteria))
+            .ToListAsync();
+        
+        return foundPosts;
+    }
+
     // todo метод для получения статей по конкретному тегу
     // todo поиск на сайте по содержимому текста
 }

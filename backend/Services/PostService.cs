@@ -26,15 +26,9 @@ public class PostService : IPostService
         List<GetPostDTO> postDTOs = new List<GetPostDTO>();
         foreach (Post post in posts)
         {
-            int timePosted = (DateTime.UtcNow - post.publishDate).Days;
-            string dateType = "days";
-            if (timePosted == 0)
-            {
-                timePosted = (DateTime.UtcNow - post.publishDate).Hours;
-                dateType = "hours";
-            }
+            (int, string) publishedAgoTime = CalculatePostPublishTime(post);
 
-            postDTOs.Add(post.ToGetPostDTO(timePosted, dateType));
+            postDTOs.Add(post.ToGetPostDTO(publishedAgoTime.Item1, publishedAgoTime.Item2));
         }
 
         return postDTOs;
@@ -43,16 +37,10 @@ public class PostService : IPostService
     public async Task<GetPostDTO> GetPost(Guid guid)
     {
         Post post = await _postRepository.GetPostAsync(guid);
+        
+        (int, string) publishedAgoTime = CalculatePostPublishTime(post);
 
-        int timePosted = (DateTime.UtcNow - post.publishDate).Days;
-        string dateType = "days";
-        if (timePosted == 0)
-        {
-            timePosted = (DateTime.UtcNow - post.publishDate).Hours;
-            dateType = "hours";
-        }
-
-        GetPostDTO postDTO = post.ToGetPostDTO(timePosted, dateType);
+        GetPostDTO postDTO = post.ToGetPostDTO(publishedAgoTime.Item1, publishedAgoTime.Item2);
 
         return postDTO;
     }
@@ -75,5 +63,33 @@ public class PostService : IPostService
     public async Task LikePost(LikePostDTO likePostDTO, CancellationToken cancellationToken)
     {
         await _postRepository.LikePost(likePostDTO.PostId, likePostDTO.IsDislike, cancellationToken);
+    }
+
+    public async Task<List<GetPostDTO>> SearchPosts(string searchCriteria)
+    {
+        List<Post> foundPosts = await _postRepository.SearchPosts(searchCriteria);
+
+        List<GetPostDTO> postsDtos = new List<GetPostDTO>();
+
+        foreach (var post in foundPosts)
+        {
+            (int, string) publishedAgoTime = CalculatePostPublishTime(post);
+            postsDtos.Add(post.ToGetPostDTO(publishedAgoTime.Item1, publishedAgoTime.Item2));
+        }
+        
+        return postsDtos;
+    }
+
+    private (int, string) CalculatePostPublishTime(Post post)
+    {
+        int timePosted = (DateTime.UtcNow - post.publishDate).Days;
+        string dateType = "days";
+        if (timePosted == 0)
+        {
+            timePosted = (DateTime.UtcNow - post.publishDate).Hours;
+            dateType = "hours";
+        }
+        
+        return (timePosted, dateType);
     }
 }
