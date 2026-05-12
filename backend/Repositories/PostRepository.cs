@@ -84,7 +84,7 @@ public class PostRepository : IPostRepository
             postToChange.Likes += 1;
         }
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<List<Post>> SearchPosts(string searchCriteria)
@@ -108,6 +108,15 @@ public class PostRepository : IPostRepository
             .ToListAsync();
         
         return postsWithTag;
+    }
+    
+    public async Task AddComment(Guid postId)
+    {
+        Post post = GetPostAsync(postId).Result;
+
+        post.Comments += 1;
+        
+        await _context.SaveChangesAsync();
     }
 
     // todo метод для получения статей по конкретному тегу

@@ -14,4 +14,5 @@ public interface IPostRepository
     public Task<List<Post>> SearchPosts(string searchCriteria);
     public Task<List<Post>> GetPostsByTag(string tag);
     public Task DeletePost(Guid postId);
+    public Task AddComment(Guid postId);
 }

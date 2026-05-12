@@ -124,4 +124,12 @@ public class PostController : ControllerBase
         
         return TypedResults.Ok(postDtos);
     }
+
+    [HttpPatch]
+    [Route("posts/comment/{postId}")]
+    public IResult AddComment([FromRoute] Guid postId)
+    {
+        _postService.AddComment(postId);
+        return TypedResults.Ok();
+    }
 }

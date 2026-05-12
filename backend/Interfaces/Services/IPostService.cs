@@ -13,4 +13,5 @@ public interface IPostService
     public Task LikePost(LikePostDTO likePostDTO, CancellationToken cancellationToken);
     public Task<List<GetPostDTO>> SearchPosts(string searchCriteria);
     public Task<List<GetPostDTO>> GetPostsByTag(string tag);
+    public Task AddComment(Guid postId);
 }

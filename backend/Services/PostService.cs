@@ -94,6 +94,13 @@ public class PostService : IPostService
         return postDtos;
     }
 
+    public Task AddComment(Guid postId)
+    {
+        _postRepository.AddComment(postId);
+        
+        return Task.CompletedTask;
+    }
+
     private (int, string) CalculatePostPublishTime(Post post)
     {
         int timePosted = (DateTime.UtcNow - post.publishDate).Days;
