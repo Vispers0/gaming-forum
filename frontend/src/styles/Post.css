@@ -165,3 +165,17 @@
 .post-body:hover {
     transform: translateY(-2px);
 }
+
+.clickable-tag {
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.clickable-tag:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+}
+
+.clickable-tag:active {
+    transform: translateY(0);
+}

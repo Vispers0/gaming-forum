@@ -35,17 +35,22 @@ function Home() {
   const [isSearching, setIsSearching] = useState(false);
 
   const searchQuery = searchParams.get("search") || "";
+  const tagQuery = searchParams.get("tag") || "";
 
-  const fetchPosts = useCallback(async (searchCriteria?: string) => {
+  const fetchPosts = useCallback(async (searchCriteria?: string, tagCriteria?: string) => {
     setIsLoading(true);
     setError(null);
-    setIsSearching(!!searchCriteria);
+    setIsSearching(!!(searchCriteria || tagCriteria));
 
     try {
       let url = 'http://localhost:8080/api/posts';
-      if (searchCriteria && searchCriteria.trim()) {
+
+      if (tagCriteria && tagCriteria.trim()) {
+        url = `http://localhost:8080/api/posts/tag?name=${encodeURIComponent(tagCriteria)}`;
+        console.log('Searching posts by tag:', tagCriteria);
+      } else if (searchCriteria && searchCriteria.trim()) {
         url = `http://localhost:8080/api/posts/search?searchCriteria=${encodeURIComponent(searchCriteria)}`;
-        console.log('Searching posts with criteria:', searchCriteria);
+        console.log('Searching posts by text:', searchCriteria);
       }
 
       const postsResponse = await fetch(url, {
@@ -126,12 +131,14 @@ function Home() {
   };
 
   useEffect(() => {
-    if (searchQuery) {
-      fetchPosts(searchQuery);
+    if (tagQuery) {
+      fetchPosts(undefined, tagQuery);
+    } else if (searchQuery) {
+      fetchPosts(searchQuery, undefined);
     } else {
       fetchPosts();
     }
-  }, [searchQuery, fetchPosts]);
+  }, [searchQuery, tagQuery, fetchPosts]);
 
   const formatDate = (timePosted: number, dateType: string): string => {
     switch (dateType) {
@@ -157,6 +164,16 @@ function Home() {
     setSearchParams({});
   };
 
+  const getSearchDisplayText = (): string => {
+    if (tagQuery) {
+      return `по тегу "${tagQuery}"`;
+    }
+    if (searchQuery) {
+      return `по запросу "${searchQuery}"`;
+    }
+    return '';
+  };
+
   if (isLoading && posts.length === 0) {
     return (
         <div className="loading-container">
@@ -170,7 +187,15 @@ function Home() {
     return (
         <div className="error-container">
           <p className="error-message">{error}</p>
-          <button onClick={() => fetchPosts(searchQuery || undefined)} className="retry-button">
+          <button onClick={() => {
+            if (tagQuery) {
+              fetchPosts(undefined, tagQuery);
+            } else if (searchQuery) {
+              fetchPosts(searchQuery, undefined);
+            } else {
+              fetchPosts();
+            }
+          }} className="retry-button">
             Попробовать снова
           </button>
         </div>
@@ -191,7 +216,7 @@ function Home() {
   if (posts.length === 0 && isSearching && !isLoading) {
     return (
         <div className="empty-container">
-          <p>По вашему запросу "{searchQuery}" ничего не найдено</p>
+          <p>По вашему запросу {getSearchDisplayText()} ничего не найдено</p>
           <p>Попробуйте изменить критерии поиска</p>
           <button
               onClick={handleClearSearch}
@@ -208,7 +233,7 @@ function Home() {
       <div className="home-container">
         {isSearching && (
             <div style={{ marginBottom: '16px', color: '#888888', fontSize: '14px' }}>
-              Результаты поиска по запросу: "{searchQuery}"
+              Результаты поиска {getSearchDisplayText()}
               <button
                   onClick={handleClearSearch}
                   style={{

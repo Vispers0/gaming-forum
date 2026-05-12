@@ -1,6 +1,7 @@
-// Post.tsx
+// Post.tsx (добавлен обработчик клика по gameTag)
 import { useState, useEffect } from "react";
 import { useKeycloak } from "@react-keycloak-fork/web";
+import { useNavigate } from "react-router-dom";
 
 import "../styles/Post.css"
 import PostOverlay from "./PostOverlay";
@@ -26,19 +27,20 @@ interface PostProps {
 const API_BASE = 'http://localhost:8080/api';
 
 function Post({
-    guid,
-    authorName,
-    authorAvatar,
-    publishDate,
-    postTitle,
-    postImage,
-    postText,
-    likeCount,
-    commentCount,
-    gameTag,
-    postTypeTag
-}: PostProps) {
+                  guid,
+                  authorName,
+                  authorAvatar,
+                  publishDate,
+                  postTitle,
+                  postImage,
+                  postText,
+                  likeCount,
+                  commentCount,
+                  gameTag,
+                  postTypeTag
+              }: PostProps) {
     const { keycloak } = useKeycloak();
+    const navigate = useNavigate();
     const [avatar] = useState(authorAvatar || noAvatarPicture)
     const [likes, setLikes] = useState(likeCount)
     const [isLiked, setIsLiked] = useState(false)
@@ -57,19 +59,12 @@ function Post({
     useEffect(() => {
         const checkIfLiked = async () => {
             const userId = getCurrentUserId();
-            console.log('Checking like status - authenticated:', keycloak?.authenticated, 'userId:', userId);
-            
             if (!userId) {
-                console.log('No userId, setting isLiked to false');
-                setIsLiked(false);
                 setIsCheckingLike(false);
                 return;
             }
 
-            setIsCheckingLike(true);
-            
             try {
-                console.log(`Checking like status for post ${guid}, user ${userId}`);
                 const response = await fetch(`${API_BASE}/likes/check?userId=${userId}&postId=${guid}`, {
                     method: 'GET',
                     headers: {
@@ -77,29 +72,28 @@ function Post({
                     },
                 });
 
-                console.log('Check like response status:', response.status);
-
                 if (response.ok) {
                     const textResponse = await response.text();
-                    console.log('Raw response:', textResponse);
-                    
                     const isLikedValue = textResponse === 'true';
                     setIsLiked(isLikedValue);
-                    console.log('Is liked:', isLikedValue);
-                } else {
-                    console.error('Check like failed with status:', response.status);
-                    setIsLiked(false);
                 }
             } catch (error) {
                 console.error('Error checking like status:', error);
-                setIsLiked(false);
             } finally {
                 setIsCheckingLike(false);
             }
         };
 
         checkIfLiked();
-    }, [guid, keycloak?.authenticated]); // Добавлена зависимость от authenticated
+    }, [guid]);
+
+    // Обработчик клика по тегу игры
+    const handleGameTagClick = (e: React.MouseEvent) => {
+        e.stopPropagation(); // Предотвращаем открытие оверлея поста
+        if (gameTag) {
+            navigate(`/home?tag=${encodeURIComponent(gameTag)}`);
+        }
+    };
 
     // Получаем первые 3 предложения для превью
     const getPreviewText = (text: string, sentencesCount: number = 3): string => {
@@ -121,7 +115,6 @@ function Post({
 
         try {
             if (!isLiked) {
-                console.log('Adding like...');
                 const likeResponse = await fetch(`${API_BASE}/likes`, {
                     method: 'POST',
                     headers: {
@@ -132,8 +125,6 @@ function Post({
                         postId: guid
                     }),
                 });
-
-                console.log('Create like response:', likeResponse.status);
 
                 if (!likeResponse.ok) {
                     throw new Error('Failed to create like');
@@ -150,14 +141,11 @@ function Post({
                     }),
                 });
 
-                console.log('Patch like response (add):', patchResponse.status);
-
                 if (patchResponse.ok) {
                     setLikes(prev => prev + 1);
                     setIsLiked(true);
                 }
             } else {
-                console.log('Removing like...');
                 const deleteResponse = await fetch(`${API_BASE}/likes`, {
                     method: 'DELETE',
                     headers: {
@@ -168,8 +156,6 @@ function Post({
                         postId: guid
                     }),
                 });
-
-                console.log('Delete like response:', deleteResponse.status);
 
                 if (!deleteResponse.ok) {
                     throw new Error('Failed to delete like');
@@ -185,8 +171,6 @@ function Post({
                         isDislike: true
                     }),
                 });
-
-                console.log('Patch like response (remove):', patchResponse.status);
 
                 if (patchResponse.ok) {
                     setLikes(prev => Math.max(0, prev - 1));
@@ -229,7 +213,13 @@ function Post({
                 </div>
                 <div className="post-tags">
                     {gameTag && (
-                        <span className="game-tag">{gameTag}</span>
+                        <span
+                            className="game-tag clickable-tag"
+                            onClick={handleGameTagClick}
+                            title={`Показать все посты по игре ${gameTag}`}
+                        >
+                            {gameTag}
+                        </span>
                     )}
                     {postTypeTag && (
                         <span className="post-type-tag">{postTypeTag}</span>
