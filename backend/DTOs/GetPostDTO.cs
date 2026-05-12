@@ -6,6 +6,7 @@ public class GetPostDTO
 {
     public Guid Guid { get; set; }
     public Guid AuthorId { get; set; }
+    public string GameTag { get; set; }
     public PostContent PostContent { get; set; }
     public int TimePosted { get; set; }
     public string DateType { get; set; } = String.Empty;

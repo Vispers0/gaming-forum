@@ -8,6 +8,7 @@ public class CreatePostDTO
 {
     [Required]
     public Guid AuthorId { get; set; }
+    public string GameTag { get; set; }
     [Required]
     public PostContent PostContent { get; set; }
 }

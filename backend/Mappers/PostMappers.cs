@@ -11,6 +11,7 @@ public static class PostMappers
         {
             Guid = Guid.NewGuid(),
             AuthorId = createPostDTO.AuthorId,
+            GameTag = createPostDTO.GameTag,
             PostContent = new PostContent
             {
                 guid = Guid.NewGuid(),
@@ -30,6 +31,7 @@ public static class PostMappers
         {
             Guid = post.Guid,
             AuthorId = post.AuthorId,
+            GameTag =  post.GameTag,
             PostContent = new PostContent
             {
                 guid = post.PostContent.guid,
