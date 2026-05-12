@@ -12,4 +12,5 @@ public interface IPostService
     public void DeletePost(Guid guid);
     public Task LikePost(LikePostDTO likePostDTO, CancellationToken cancellationToken);
     public Task<List<GetPostDTO>> SearchPosts(string searchCriteria);
+    public Task<List<GetPostDTO>> GetPostsByTag(string tag);
 }

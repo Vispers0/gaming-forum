@@ -80,6 +80,20 @@ public class PostService : IPostService
         return postsDtos;
     }
 
+    public async Task<List<GetPostDTO>> GetPostsByTag(string tag)
+    {
+        List<Post> posts = await _postRepository.GetPostsByTag(tag);
+        List<GetPostDTO> postDtos = new List<GetPostDTO>();
+        
+        foreach (Post post in posts)
+        {
+            (int, string) publishedAgoTime = CalculatePostPublishTime(post);
+            postDtos.Add(post.ToGetPostDTO(publishedAgoTime.Item1, publishedAgoTime.Item2));
+        }
+        
+        return postDtos;
+    }
+
     private (int, string) CalculatePostPublishTime(Post post)
     {
         int timePosted = (DateTime.UtcNow - post.publishDate).Days;

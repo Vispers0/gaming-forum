@@ -97,6 +97,16 @@ public class PostRepository : IPostRepository
         return foundPosts;
     }
 
+    public async Task<List<Post>> GetPostsByTag(string tag)
+    {
+        List<Post> postsWithTag = await _context.posts
+            .Include(p => p.PostContent)
+            .Where(p => p.GameTag == tag)
+            .ToListAsync();
+        
+        return postsWithTag;
+    }
+
     // todo метод для получения статей по конкретному тегу
     // todo поиск на сайте по содержимому текста
 }

@@ -115,4 +115,13 @@ public class PostController : ControllerBase
 
         return TypedResults.NoContent();
     }
+
+    [HttpGet]
+    [Route("posts/tag")]
+    public async Task<IResult> GetPostsByTag([FromQuery] string name)
+    {
+        List<GetPostDTO> postDtos = await _postService.GetPostsByTag(name);
+        
+        return TypedResults.Ok(postDtos);
+    }
 }
