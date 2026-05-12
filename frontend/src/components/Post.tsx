@@ -1,4 +1,4 @@
-// Post.tsx (добавлен обработчик клика по gameTag)
+// Post.tsx (добавлен обработчик клика по gameTag и синхронизация комментариев)
 import { useState, useEffect } from "react";
 import { useKeycloak } from "@react-keycloak-fork/web";
 import { useNavigate } from "react-router-dom";
@@ -35,7 +35,7 @@ function Post({
                   postImage,
                   postText,
                   likeCount,
-                  commentCount,
+                  commentCount: initialCommentCount,
                   gameTag,
                   postTypeTag
               }: PostProps) {
@@ -46,6 +46,7 @@ function Post({
     const [isLiked, setIsLiked] = useState(false)
     const [isOverlayOpen, setIsOverlayOpen] = useState(false)
     const [isCheckingLike, setIsCheckingLike] = useState(true)
+    const [commentCount, setCommentCount] = useState(initialCommentCount)
 
     // Получаем ID текущего пользователя
     const getCurrentUserId = (): string | null => {
@@ -93,6 +94,11 @@ function Post({
         if (gameTag) {
             navigate(`/home?tag=${encodeURIComponent(gameTag)}`);
         }
+    };
+
+    // Обработчик обновления количества комментариев
+    const handleCommentCountUpdate = (newCount: number) => {
+        setCommentCount(newCount);
     };
 
     // Получаем первые 3 предложения для превью
@@ -262,6 +268,7 @@ function Post({
             <PostOverlay
                 isOpen={isOverlayOpen}
                 onClose={handleCloseOverlay}
+                onCommentCountUpdate={handleCommentCountUpdate}
                 post={{
                     guid,
                     authorName,

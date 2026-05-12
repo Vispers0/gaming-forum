@@ -25,6 +25,7 @@ interface Comment {
 interface PostOverlayProps {
     isOpen: boolean;
     onClose: () => void;
+    onCommentCountUpdate?: (count: number) => void;
     post: {
         guid: string;
         authorName: string;
@@ -42,9 +43,9 @@ interface PostOverlayProps {
 
 const API_BASE = 'http://localhost:8080/api';
 
-function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
+function PostOverlay({ isOpen, onClose, onCommentCountUpdate, post }: PostOverlayProps) {
     const { keycloak } = useKeycloak();
-    
+
     // Состояния
     const [comments, setComments] = useState<Comment[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -53,7 +54,7 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
     const [likes, setLikes] = useState(post.likeCount);
     const [isLiked, setIsLiked] = useState(false);
     const [isCheckingLike, setIsCheckingLike] = useState(true);
-    
+
     const commentsEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -69,7 +70,7 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
     const checkLikeStatus = useCallback(async () => {
         const userId = getCurrentUserId();
         console.log('PostOverlay - Checking like status - authenticated:', keycloak?.authenticated, 'userId:', userId);
-        
+
         if (!userId) {
             console.log('PostOverlay - No userId, setting isLiked to false');
             setIsLiked(false);
@@ -78,7 +79,7 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
         }
 
         setIsCheckingLike(true);
-        
+
         try {
             console.log(`PostOverlay - Checking like status for post ${post.guid}, user ${userId}`);
             const response = await fetch(`${API_BASE}/likes/check?userId=${userId}&postId=${post.guid}`, {
@@ -93,7 +94,7 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
             if (response.ok) {
                 const textResponse = await response.text();
                 console.log('PostOverlay - Raw response:', textResponse);
-                
+
                 const isLikedValue = textResponse === 'true';
                 setIsLiked(isLikedValue);
                 console.log('PostOverlay - Is liked:', isLikedValue);
@@ -133,10 +134,10 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
     // Загрузка комментариев
     const loadComments = useCallback(async () => {
         if (!post.guid) return;
-        
+
         console.log('Loading comments for post:', post.guid);
         setIsLoading(true);
-        
+
         try {
             const response = await fetch(`${API_BASE}/comments/${post.guid}`, {
                 method: 'GET',
@@ -145,23 +146,25 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
                     'Accept': 'application/json',
                 },
             });
-            
+
             console.log('Comments response status:', response.status);
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
             }
-            
+
             const data = await response.json();
             console.log('Comments data:', data);
-            
+
+            let loadedComments: Comment[] = [];
+
             if (Array.isArray(data)) {
                 // Загружаем данные авторов для каждого комментария
-                const commentsWithAuthors = await Promise.all(
+                loadedComments = await Promise.all(
                     data.map(async (comment: any, index: number) => {
                         let authorName = 'Пользователь';
                         let authorAvatar = noAvatarPicture;
-                        
+
                         if (comment.authorId) {
                             try {
                                 const userRes = await fetch(`${API_BASE}/users/${comment.authorId}`);
@@ -174,7 +177,7 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
                                 console.error('Error fetching user:', err);
                             }
                         }
-                        
+
                         return {
                             id: comment.id || comment.guid || `temp-${index}`,
                             authorId: comment.authorId,
@@ -187,18 +190,26 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
                         };
                     })
                 );
-                
-                setComments(commentsWithAuthors);
+
+                setComments(loadedComments);
             } else {
                 setComments([]);
+            }
+
+            // Обновляем счётчик комментариев в родительском компоненте
+            if (onCommentCountUpdate) {
+                onCommentCountUpdate(loadedComments.length);
             }
         } catch (error) {
             console.error('Error loading comments:', error);
             setComments([]);
+            if (onCommentCountUpdate) {
+                onCommentCountUpdate(0);
+            }
         } finally {
             setIsLoading(false);
         }
-    }, [post.guid]);
+    }, [post.guid, onCommentCountUpdate]);
 
     // Отправка комментария
     const sendComment = useCallback(async () => {
@@ -207,25 +218,25 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
             console.log('Comment text is empty');
             return;
         }
-        
+
         const userId = getCurrentUserId();
         if (!userId) {
             alert('Необходимо авторизоваться');
             return;
         }
-        
+
         console.log('Sending comment...');
         setIsSending(true);
-        
+
         try {
             const requestBody = {
                 postId: post.guid,
                 authorId: userId,
                 commentText: trimmedText,
             };
-            
+
             console.log('Request body:', requestBody);
-            
+
             const response = await fetch(`${API_BASE}/comments`, {
                 method: 'POST',
                 headers: {
@@ -233,17 +244,16 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
                 },
                 body: JSON.stringify(requestBody),
             });
-            
+
             console.log('Send comment response status:', response.status);
-            
+
             if (response.ok) {
                 console.log('Comment sent successfully, HTTP 201');
-                
-                // Не ждём JSON, так как сервер возвращает только статус 201
+
                 // Загружаем данные автора
                 let authorName = 'Вы';
                 let authorAvatar = noAvatarPicture;
-                
+
                 try {
                     const userRes = await fetch(`${API_BASE}/users/${userId}`);
                     if (userRes.ok) {
@@ -254,7 +264,7 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
                 } catch (err) {
                     console.error('Error fetching current user:', err);
                 }
-                
+
                 // Создаём новый комментарий с локальными данными
                 const newComment: Comment = {
                     id: Date.now().toString(),
@@ -266,10 +276,21 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
                     dateType: 'seconds',
                     reputation: 0,
                 };
-                
-                setComments(prev => [...prev, newComment]);
+
+                // Обновляем состояние комментариев
+                setComments(prev => {
+                    const updatedComments = [...prev, newComment];
+
+                    // Обновляем счётчик в родительском компоненте
+                    if (onCommentCountUpdate) {
+                        onCommentCountUpdate(updatedComments.length);
+                    }
+
+                    return updatedComments;
+                });
+
                 setNewCommentText("");
-                
+
                 // Фокус на textarea после отправки
                 setTimeout(() => {
                     textareaRef.current?.focus();
@@ -285,7 +306,7 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
         } finally {
             setIsSending(false);
         }
-    }, [newCommentText, post.guid, getCurrentUserId]);
+    }, [newCommentText, post.guid, getCurrentUserId, onCommentCountUpdate]);
 
     // Обработка лайка поста
     const handleLike = useCallback(async () => {
@@ -298,7 +319,6 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
         try {
             if (!isLiked) {
                 // Ставим лайк
-                // 1. Создаём запись о лайке
                 const likeResponse = await fetch(`${API_BASE}/likes`, {
                     method: 'POST',
                     headers: {
@@ -314,7 +334,6 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
                     throw new Error('Failed to create like');
                 }
 
-                // 2. Обновляем счётчик лайков поста (isDislike = false - ставим лайк)
                 const patchResponse = await fetch(`${API_BASE}/like/post`, {
                     method: 'PATCH',
                     headers: {
@@ -332,7 +351,6 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
                 }
             } else {
                 // Убираем лайк
-                // 1. Удаляем запись о лайке
                 const deleteResponse = await fetch(`${API_BASE}/likes`, {
                     method: 'DELETE',
                     headers: {
@@ -348,7 +366,6 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
                     throw new Error('Failed to delete like');
                 }
 
-                // 2. Обновляем счётчик лайков поста (isDislike = true - убираем лайк)
                 const patchResponse = await fetch(`${API_BASE}/like/post`, {
                     method: 'PATCH',
                     headers: {
@@ -381,10 +398,10 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
                 },
                 body: JSON.stringify({ voteType }),
             });
-            
+
             if (response.ok) {
-                setComments(prev => prev.map(c => 
-                    c.id === commentId 
+                setComments(prev => prev.map(c =>
+                    c.id === commentId
                         ? { ...c, reputation: currentRep + (voteType === 'up' ? 1 : -1) }
                         : c
                 ));
@@ -451,8 +468,8 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
                 <div className="overlay-body">
                     {/* Post Author */}
                     <div className="post-author">
-                        <img 
-                            src={post.authorAvatar || noAvatarPicture} 
+                        <img
+                            src={post.authorAvatar || noAvatarPicture}
                             alt={post.authorName}
                             className="author-avatar"
                             onError={(e) => {
@@ -490,7 +507,7 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
 
                     {/* Stats */}
                     <div className="post-stats">
-                        <button 
+                        <button
                             className={`stat-btn like-btn ${isLiked ? 'active' : ''}`}
                             onClick={handleLike}
                             disabled={isCheckingLike}
@@ -507,7 +524,7 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
                     {/* Comments Section */}
                     <div className="comments-section">
                         <h3>Комментарии ({comments.length})</h3>
-                        
+
                         {isLoading ? (
                             <div className="loading-state">
                                 <div className="spinner"></div>
@@ -522,8 +539,8 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
                             <div className="comments-list">
                                 {comments.map((comment) => (
                                     <div key={comment.id} className="comment">
-                                        <img 
-                                            src={comment.authorAvatar} 
+                                        <img
+                                            src={comment.authorAvatar}
                                             alt={comment.authorName}
                                             className="comment-avatar"
                                             onError={(e) => {
@@ -540,7 +557,7 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
                                             <p className="comment-text">{comment.content}</p>
                                             <div className="comment-footer">
                                                 <div className="reputation">
-                                                    <button 
+                                                    <button
                                                         className="reputation-up"
                                                         onClick={() => handleVote(comment.id, comment.reputation, 'up')}
                                                     >
@@ -549,7 +566,7 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
                                                     <span className={`reputation-value ${comment.reputation > 0 ? 'positive' : comment.reputation < 0 ? 'negative' : ''}`}>
                                                         {comment.reputation > 0 ? `+${comment.reputation}` : comment.reputation}
                                                     </span>
-                                                    <button 
+                                                    <button
                                                         className="reputation-down"
                                                         onClick={() => handleVote(comment.id, comment.reputation, 'down')}
                                                     >
@@ -579,7 +596,7 @@ function PostOverlay({ isOpen, onClose, post }: PostOverlayProps) {
                         rows={2}
                         disabled={isSending}
                     />
-                    <button 
+                    <button
                         className="send-btn"
                         onClick={sendComment}
                         disabled={isSending || !newCommentText.trim()}
