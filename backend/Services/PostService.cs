@@ -98,10 +98,23 @@ public class PostService : IPostService
     {
         int timePosted = (DateTime.UtcNow - post.publishDate).Days;
         string dateType = "days";
+        
         if (timePosted == 0)
         {
             timePosted = (DateTime.UtcNow - post.publishDate).Hours;
             dateType = "hours";
+        }
+
+        if (timePosted == 0)
+        {
+            timePosted = (DateTime.UtcNow - post.publishDate).Minutes;
+            dateType = "minutes";
+        }
+
+        if (timePosted == 0)
+        {
+            timePosted = (DateTime.UtcNow - post.publishDate).Seconds;
+            dateType = "seconds";
         }
         
         return (timePosted, dateType);
