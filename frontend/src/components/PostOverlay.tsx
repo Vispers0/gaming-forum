@@ -1,4 +1,4 @@
-// PostOverlay.tsx
+// PostOverlay.tsx (обновлённая версия с PATCH запросом)
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useKeycloak } from "@react-keycloak-fork/web";
 import "../styles/PostOverlay.css";
@@ -229,6 +229,7 @@ function PostOverlay({ isOpen, onClose, onCommentCountUpdate, post }: PostOverla
         setIsSending(true);
 
         try {
+            // 1. Отправляем POST запрос для создания комментария
             const requestBody = {
                 postId: post.guid,
                 authorId: userId,
@@ -237,7 +238,7 @@ function PostOverlay({ isOpen, onClose, onCommentCountUpdate, post }: PostOverla
 
             console.log('Request body:', requestBody);
 
-            const response = await fetch(`${API_BASE}/comments`, {
+            const commentResponse = await fetch(`${API_BASE}/comments`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -245,10 +246,31 @@ function PostOverlay({ isOpen, onClose, onCommentCountUpdate, post }: PostOverla
                 body: JSON.stringify(requestBody),
             });
 
-            console.log('Send comment response status:', response.status);
+            console.log('Send comment response status:', commentResponse.status);
 
-            if (response.ok) {
+            if (commentResponse.ok) {
                 console.log('Comment sent successfully, HTTP 201');
+
+                // 2. Отправляем PATCH запрос для увеличения счётчика комментариев у поста
+                try {
+                    const patchResponse = await fetch(`${API_BASE}/posts/comment/${post.guid}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    });
+
+                    console.log('Patch comment count response status:', patchResponse.status);
+
+                    if (!patchResponse.ok) {
+                        console.error('Failed to update post comment count:', patchResponse.status);
+                    } else {
+                        console.log('Post comment count updated successfully');
+                    }
+                } catch (patchError) {
+                    console.error('Error updating post comment count:', patchError);
+                    // Не прерываем выполнение, так как комментарий уже создан
+                }
 
                 // Загружаем данные автора
                 let authorName = 'Вы';
@@ -296,8 +318,8 @@ function PostOverlay({ isOpen, onClose, onCommentCountUpdate, post }: PostOverla
                     textareaRef.current?.focus();
                 }, 100);
             } else {
-                const errorText = await response.text();
-                console.error('Failed to send comment:', response.status, errorText);
+                const errorText = await commentResponse.text();
+                console.error('Failed to send comment:', commentResponse.status, errorText);
                 alert('Не удалось отправить комментарий');
             }
         } catch (error) {
