@@ -101,6 +101,20 @@ public class PostService : IPostService
         return Task.CompletedTask;
     }
 
+    public List<GetPostDTO> GetPostsByAuthor(Guid authorId)
+    {
+        List<Post> authorPosts = _postRepository.GetPostsByAuthor(authorId).Result;
+        List<GetPostDTO> authorPostDtos = new List<GetPostDTO>();
+
+        foreach (Post post in authorPosts)
+        {
+            (int, string) publishedAgoTime = CalculatePostPublishTime(post);
+            authorPostDtos.Add(post.ToGetPostDTO(publishedAgoTime.Item1, publishedAgoTime.Item2));
+        }
+
+        return authorPostDtos;
+    }
+
     private (int, string) CalculatePostPublishTime(Post post)
     {
         int timePosted = (DateTime.UtcNow - post.publishDate).Days;

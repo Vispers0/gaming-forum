@@ -119,6 +119,17 @@ public class PostRepository : IPostRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task<List<Post>> GetPostsByAuthor(Guid authorId)
+    {
+        List<Post> authorPosts = await _context.posts
+            .Include(p => p.PostContent)
+            .Where(p => p.AuthorId == authorId)
+            .OrderByDescending(p => p.publishDate)
+            .ToListAsync();
+        
+        return authorPosts;
+    }
+
     // todo метод для получения статей по конкретному тегу
     // todo поиск на сайте по содержимому текста
 }

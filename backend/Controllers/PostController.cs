@@ -132,4 +132,13 @@ public class PostController : ControllerBase
         _postService.AddComment(postId);
         return TypedResults.Ok();
     }
+
+    [HttpGet]
+    [Route("posts/{authorId}")]
+    public IResult GetPostsByAuthor([FromRoute] Guid authorId)
+    {
+        List<GetPostDTO> authorPosts = _postService.GetPostsByAuthor(authorId);
+        
+        return TypedResults.Ok(authorPosts);
+    }
 }
