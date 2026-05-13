@@ -355,3 +355,83 @@
         font-size: 20px;
     }
 }
+
+/* Неавторизованное состояние */
+.profile-unauthorized {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    padding: 40px;
+}
+
+.unauthorized-container {
+    text-align: center;
+    background-color: #E6E6E6;
+    border: 1px solid #AAAAAA;
+    border-radius: 30px;
+    padding: 50px;
+    max-width: 500px;
+    width: 100%;
+}
+
+.unauthorized-icon {
+    width: 128px;
+    height: 128px;
+    margin-bottom: 20px;
+}
+
+.unauthorized-container h2 {
+    font-family: 'Noto Sans';
+    font-size: 28px;
+    font-weight: bold;
+    color: #1E1E1E;
+    margin: 0 0 12px 0;
+}
+
+.unauthorized-container p {
+    font-family: 'Noto Sans';
+    font-size: 18px;
+    color: #666666;
+    margin: 0 0 30px 0;
+}
+
+.unauthorized-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+}
+
+.login-btn,
+.register-btn {
+    padding: 12px 32px;
+    border: none;
+    border-radius: 30px;
+    font-family: 'Noto Sans';
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.login-btn {
+    background-color: #5A5A5A;
+    color: #FFFFFF;
+}
+
+.login-btn:hover {
+    background-color: #4A4A4A;
+    transform: translateY(-2px);
+}
+
+.register-btn {
+    background-color: transparent;
+    color: #5A5A5A;
+    border: 2px solid #5A5A5A;
+}
+
+.register-btn:hover {
+    background-color: #5A5A5A;
+    color: #FFFFFF;
+    transform: translateY(-2px);
+}

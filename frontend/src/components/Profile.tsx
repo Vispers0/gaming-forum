@@ -9,6 +9,7 @@ import editIcon from "../assets/Note_Edit.svg";
 import deleteIcon from "../assets/Trash_Empty.svg";
 import likeIcon from "../assets/Heart_01_black.svg";
 import commentIcon from "../assets/Chat_Conversation_Circle_black.svg";
+import lockIcon from "../assets/padlock.png";
 
 interface PostContent {
     title: string;
@@ -55,7 +56,16 @@ function Profile() {
         image: null
     });
 
+    const isAuthenticated = keycloak.authenticated;
     const userId = keycloak.tokenParsed?.sub || "";
+
+    // Проверка авторизации
+    useEffect(() => {
+        if (!isAuthenticated) {
+            // Если не авторизован, останавливаем загрузку
+            setIsLoading(false);
+        }
+    }, [isAuthenticated]);
 
     // Получение данных пользователя
     const fetchUserData = async () => {
@@ -110,7 +120,7 @@ function Profile() {
     };
 
     useEffect(() => {
-        if (userId) {
+        if (isAuthenticated && userId) {
             fetchUserData();
             fetchUserPosts();
         }
@@ -118,10 +128,14 @@ function Profile() {
         // Получаем полное имя из Keycloak
         const name = keycloak.tokenParsed?.name || keycloak.tokenParsed?.given_name || "";
         setFullName(name);
-    }, [userId]);
+    }, [userId, isAuthenticated]);
 
     // Загрузка изображения профиля
     const handleAvatarClick = () => {
+        if (!isAuthenticated) {
+            alert('Необходимо авторизоваться для изменения профиля');
+            return;
+        }
         fileInputRef.current?.click();
     };
 
@@ -178,6 +192,10 @@ function Profile() {
 
     // Редактирование поста
     const handleEditPost = (post: PostData) => {
+        if (!isAuthenticated) {
+            alert('Необходимо авторизоваться для редактирования постов');
+            return;
+        }
         setEditingPostId(post.guid);
         setEditFormData({
             title: post.postContent.title,
@@ -212,9 +230,9 @@ function Profile() {
             if (response.ok) {
                 // Обновляем пост в списке
                 setPosts(prev => prev.map(post =>
-                    post.guid === postId
-                        ? { ...post, postContent: { ...post.postContent, ...editFormData } }
-                        : post
+                  post.guid === postId
+                    ? { ...post, postContent: { ...post.postContent, ...editFormData } }
+                    : post
                 ));
                 setEditingPostId(null);
                 alert('Пост успешно обновлён');
@@ -229,6 +247,11 @@ function Profile() {
 
     // Удаление поста
     const handleDeletePost = async (postId: string) => {
+        if (!isAuthenticated) {
+            alert('Необходимо авторизоваться для удаления постов');
+            return;
+        }
+
         if (!confirm('Вы уверены, что хотите удалить этот пост?')) return;
 
         try {
@@ -278,137 +301,164 @@ function Profile() {
         return preview;
     };
 
+    // Если пользователь не авторизован, показываем предупреждение
+    if (!isAuthenticated && !isLoading) {
+        return (
+          <div className="profile-unauthorized">
+              <div className="unauthorized-container">
+                  <img src={lockIcon} className="unauthorized-icon" alt="Доступ ограничен"/>
+                  <h2>Доступ ограничен</h2>
+                  <p>Для просмотра профиля необходимо войти в систему</p>
+                  <div className="unauthorized-buttons">
+                      <button
+                        className="login-btn"
+                        onClick={() => keycloak.login()}
+                      >
+                          Войти
+                      </button>
+                      <button
+                        className="register-btn"
+                        onClick={() => keycloak.register()}
+                      >
+                          Зарегистрироваться
+                      </button>
+                  </div>
+              </div>
+          </div>
+        );
+    }
+
     if (isLoading) {
         return (
-            <div className="profile-loading">
-                <div className="loading-spinner"></div>
-                <p>Загрузка профиля...</p>
-            </div>
+          <div className="profile-loading">
+              <div className="loading-spinner"></div>
+              <p>Загрузка профиля...</p>
+          </div>
         );
     }
 
     return (
-        <div className="profile-container">
-            {/* Секция профиля */}
-            <div className="profile-header">
-                <div className="avatar-container">
-                    <img
-                        src={profilePicture}
-                        alt="Profile"
-                        className="profile-avatar"
-                        onClick={handleAvatarClick}
-                        style={{ cursor: 'pointer' }}
-                    />
-                    {isUploading && <div className="avatar-overlay">Загрузка...</div>}
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        style={{ display: 'none' }}
-                        onChange={handleFileSelect}
-                    />
-                </div>
-                <div className="profile-info">
-                    <h1 className="full-name">{fullName || "Пользователь"}</h1>
-                    <p className="username">@{username}</p>
-                </div>
-            </div>
+      <div className="profile-container">
+          {/* Секция профиля */}
+          <div className="profile-header">
+              <div className="avatar-container">
+                  <img
+                    src={profilePicture}
+                    alt="Profile"
+                    className="profile-avatar"
+                    onClick={handleAvatarClick}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  {isUploading && <div className="avatar-overlay">Загрузка...</div>}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={handleFileSelect}
+                  />
+              </div>
+              <div className="profile-info">
+                  <h1 className="full-name">{fullName || "Пользователь"}</h1>
+                  <p className="username">@{username}</p>
+              </div>
+          </div>
 
-            {/* Секция постов */}
-            <div className="profile-posts">
-                <h2>Мои публикации</h2>
-                {posts.length === 0 ? (
-                    <div className="empty-posts">
-                        <p>У вас пока нет публикаций</p>
-                        <button onClick={() => navigate('/post')} className="create-post-btn">
-                            Создать первый пост
-                        </button>
-                    </div>
-                ) : (
-                    <div className="posts-grid">
-                        {posts.map((post) => (
-                            <div key={post.guid} className="profile-post-card">
-                                {editingPostId === post.guid ? (
-                                    // Режим редактирования
-                                    <div className="edit-post-form">
-                                        <input
-                                            type="text"
-                                            className="edit-title"
-                                            value={editFormData.title}
-                                            onChange={(e) => setEditFormData(prev => ({ ...prev, title: e.target.value }))}
-                                            placeholder="Заголовок"
-                                        />
-                                        <textarea
-                                            className="edit-text"
-                                            value={editFormData.bodyText || ""}
-                                            onChange={(e) => setEditFormData(prev => ({ ...prev, bodyText: e.target.value }))}
-                                            placeholder="Текст публикации"
-                                            rows={6}
-                                        />
-                                        <div className="edit-actions">
-                                            <button onClick={() => handleUpdatePost(post.guid)} className="save-btn">
-                                                Сохранить
-                                            </button>
-                                            <button onClick={handleCancelEdit} className="cancel-btn">
-                                                Отмена
-                                            </button>
-                                        </div>
+          {/* Секция постов */}
+          <div className="profile-posts">
+              <h2>Мои публикации</h2>
+              {posts.length === 0 ? (
+                <div className="empty-posts">
+                    <p>У вас пока нет публикаций</p>
+                    <button onClick={() => navigate('/post')} className="create-post-btn">
+                        Создать первый пост
+                    </button>
+                </div>
+              ) : (
+                <div className="posts-grid">
+                    {posts.map((post) => (
+                      <div key={post.guid} className="profile-post-card">
+                          {editingPostId === post.guid ? (
+                            // Режим редактирования
+                            <div className="edit-post-form">
+                                <input
+                                  type="text"
+                                  className="edit-title"
+                                  value={editFormData.title}
+                                  onChange={(e) => setEditFormData(prev => ({ ...prev, title: e.target.value }))}
+                                  placeholder="Заголовок"
+                                />
+                                <textarea
+                                  className="edit-text"
+                                  value={editFormData.bodyText || ""}
+                                  onChange={(e) => setEditFormData(prev => ({ ...prev, bodyText: e.target.value }))}
+                                  placeholder="Текст публикации"
+                                  rows={6}
+                                />
+                                <div className="edit-actions">
+                                    <button onClick={() => handleUpdatePost(post.guid)} className="save-btn">
+                                        Сохранить
+                                    </button>
+                                    <button onClick={handleCancelEdit} className="cancel-btn">
+                                        Отмена
+                                    </button>
+                                </div>
+                            </div>
+                          ) : (
+                            <>
+                                <div className="post-header">
+                                    <span className="profile-post-game-tag">{post.gameTag}</span>
+                                    <div className="post-actions">
+                                        <button
+                                          className="edit-post-btn"
+                                          onClick={() => handleEditPost(post)}
+                                          title="Редактировать"
+                                        >
+                                            <img src={editIcon} alt="Редактировать" />
+                                        </button>
+                                        <button
+                                          className="delete-post-btn"
+                                          onClick={() => handleDeletePost(post.guid)}
+                                          title="Удалить"
+                                        >
+                                            <img src={deleteIcon} alt="Удалить" />
+                                        </button>
                                     </div>
-                                ) : (
-                                    <>
-                                        <div className="post-header">
-                                            <span className="profile-post-game-tag">{post.gameTag}</span>
-                                            <div className="post-actions">
-                                                <button
-                                                    className="edit-post-btn"
-                                                    onClick={() => handleEditPost(post)}
-                                                    title="Редактировать"
-                                                >
-                                                    <img src={editIcon} alt="Редактировать" />
-                                                </button>
-                                                <button
-                                                    className="delete-post-btn"
-                                                    onClick={() => handleDeletePost(post.guid)}
-                                                    title="Удалить"
-                                                >
-                                                    <img src={deleteIcon} alt="Удалить" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <h3 className="post-title">{post.postContent.title}</h3>
-                                        {post.postContent.image && (
-                                            <img
-                                                src={post.postContent.image}
-                                                alt="Post"
-                                                className="post-image"
-                                            />
-                                        )}
-                                        <p className="post-text">
-                                            {getPreviewText(post.postContent.bodyText || "", 3)}
-                                        </p>
-                                        <div className="post-meta">
+                                </div>
+                                <h3 className="post-title">{post.postContent.title}</h3>
+                                {post.postContent.image && (
+                                  <img
+                                    src={post.postContent.image}
+                                    alt="Post"
+                                    className="post-image"
+                                  />
+                                )}
+                                <p className="post-text">
+                                    {getPreviewText(post.postContent.bodyText || "", 3)}
+                                </p>
+                                <div className="post-meta">
                                             <span className="post-date">
                                                 {formatDate(post.timePosted, post.dateType)}
                                             </span>
-                                            <div className="post-stats">
+                                    <div className="post-stats">
                                                 <span className="stat">
                                                     <img src={likeIcon} alt="Лайки" />
                                                     {post.likes}
                                                 </span>
-                                                <span className="stat">
+                                        <span className="stat">
                                                     <img src={commentIcon} alt="Комментарии" />
-                                                    {post.comments}
+                                            {post.comments}
                                                 </span>
-                                            </div>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
-        </div>
+                                    </div>
+                                </div>
+                            </>
+                          )}
+                      </div>
+                    ))}
+                </div>
+              )}
+          </div>
+      </div>
     );
 }
 
