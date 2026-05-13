@@ -30,7 +30,6 @@
 .profile-picture {
     width: 48px;
     height: 48px;
-    filter: brightness(0);
 }
 
 .circle-decoration {

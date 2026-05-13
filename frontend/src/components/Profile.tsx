@@ -7,8 +7,8 @@ import "../styles/Profile.css";
 import noAvatarPicture from "../assets/User_Circle.svg";
 import editIcon from "../assets/Note_Edit.svg";
 import deleteIcon from "../assets/Trash_Empty.svg";
-import likeIcon from "../assets/Heart_01.svg";
-import commentIcon from "../assets/Chat_Conversation_Circle.svg";
+import likeIcon from "../assets/Heart_01_black.svg";
+import commentIcon from "../assets/Chat_Conversation_Circle_black.svg";
 
 interface PostContent {
     title: string;

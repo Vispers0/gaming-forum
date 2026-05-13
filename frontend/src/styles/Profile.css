@@ -184,7 +184,7 @@
 
 .profile-posts .post-date {
     font-family: 'Noto Sans';
-    font-size: 14px;
+    font-size: 16px;
     color: #888888;
 }
 
@@ -198,13 +198,13 @@
     align-items: center;
     gap: 6px;
     font-family: 'Noto Sans';
-    font-size: 14px;
+    font-size: 16px;
     color: #5A5A5A;
 }
 
 .profile-posts .stat img {
-    width: 20px;
-    height: 20px;
+    width: 36px;
+    height: 36px;
 }
 
 /* Режим редактирования - изолированный */
