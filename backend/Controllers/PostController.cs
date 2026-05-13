@@ -91,7 +91,7 @@ public class PostController : ControllerBase
 
         _postService.UpdatePost(postId, updatePostDTO);
 
-        return TypedResults.Ok(_postService.GetPost(postId));
+        return TypedResults.Ok();
     }
 
     [HttpPatch]

@@ -8,6 +8,7 @@ import keycloak from '../keycloak.ts'
 import Home from './Home.tsx'
 import CreatePost from './CreatePost.tsx'
 import Layout from './Layout.tsx'
+import Profile from "./Profile.tsx";
 
 const router = createBrowserRouter([{
   path: "/",
@@ -16,7 +17,8 @@ const router = createBrowserRouter([{
     { index: true, element: <Navigate to="/home" replace /> },
     // {path: "/", element: <App />},
     {path: "/home", element: <Home />},
-    {path: "/post", element: <CreatePost />}
+    {path: "/post", element: <CreatePost />},
+    {path: "/profile", element: <Profile />}
   ]
 }
 ]);

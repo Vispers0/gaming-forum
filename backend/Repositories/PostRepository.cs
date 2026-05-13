@@ -48,9 +48,13 @@ public class PostRepository : IPostRepository
 
     public void UpdatePost(Guid guid, UpdatePostDTO updatePostDTO) //ExecuteUpdateAsync
     {
-        Post? post = GetPostAsync(guid).Result;
+        Post post = GetPostAsync(guid).Result;
 
-        post.PostContent = updatePostDTO.PostContent;
+        // post.PostContent = updatePostDTO.PostContent;
+        post.PostContent.Title = updatePostDTO.PostContent.Title;
+        post.PostContent.BodyText = updatePostDTO.PostContent.BodyText;
+        post.PostContent.Image = updatePostDTO.PostContent.Image;
+        
 
          _context.SaveChanges();
         //_context.posts.Where(p => p.guid == guid)
