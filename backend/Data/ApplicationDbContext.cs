@@ -18,6 +18,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<PostContent> postContents { get; set; }
     public DbSet<Comment> Comments { get; set; }
     public DbSet<Like> Likes { get; set; }
+    public DbSet<Game> Games { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -28,5 +29,6 @@ public class ApplicationDbContext : DbContext
         modelBuilder.ApplyConfiguration(new UserProfileConfiguration());
         modelBuilder.ApplyConfiguration(new CommentConfiguration());
         modelBuilder.ApplyConfiguration(new LikeConfiguration());
+        modelBuilder.ApplyConfiguration(new GameConfiguration());
     }
 }
