@@ -10,6 +10,7 @@ import CreatePost from './CreatePost.tsx'
 import Layout from './Layout.tsx'
 import Profile from "./Profile.tsx";
 import UnderDevelopment from "./UnderDevelopment.tsx";
+import Games from "./Games.tsx";
 
 const router = createBrowserRouter([{
   path: "/",
@@ -23,7 +24,7 @@ const router = createBrowserRouter([{
     {path: "/friends", element: <UnderDevelopment />},
     {path: "/messages", element: <UnderDevelopment />},
     {path: "/groups", element: <UnderDevelopment />},
-    {path: "/games", element: <UnderDevelopment />},
+    {path: "/games", element: <Games />},
     {path: "/guides", element: <UnderDevelopment />},
     {path: "/teammates", element: <UnderDevelopment />},
   ]
