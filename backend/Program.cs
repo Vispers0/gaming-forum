@@ -57,6 +57,8 @@ public class Program
         builder.Services.AddScoped<ICommentService, CommentService>();
         builder.Services.AddScoped<ILikeRepository, LikeRepository>();
         builder.Services.AddScoped<ILikeService, LikeService>();
+        builder.Services.AddScoped<IGameService, GameService>();
+        builder.Services.AddScoped<IGameRepository, GameRepository>();
 
         builder.Services.AddCors(options =>
 {
