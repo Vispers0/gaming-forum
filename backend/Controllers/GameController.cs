@@ -24,7 +24,15 @@ public class GameController(IGameService gameService) : ControllerBase
     [HttpPost]
     public IResult AddGame([FromBody] AddGameDTO gameDto)
     {
-        gameService.AddGame(gameDto);
-        return TypedResults.Created();
+        try
+        {
+            gameService.AddGame(gameDto);
+            return TypedResults.Created();
+        }
+        catch (InvalidOperationException e)
+        {
+            return TypedResults.Conflict(e.Message);
+        }
+
     }
 }

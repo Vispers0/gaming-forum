@@ -16,6 +16,13 @@ interface CreatePostRequest {
     PostContent: PostContent;
 }
 
+interface AddGameDTO {
+    name: string;
+    cover?: string | null;
+}
+
+const API_BASE = 'http://localhost:8080/api';
+
 const CreatePost: React.FC = () => {
     const { keycloak } = useKeycloak();
 
@@ -44,6 +51,43 @@ const CreatePost: React.FC = () => {
             return keycloak.tokenParsed.sub;
         }
         throw new Error('Пользователь не авторизован');
+    };
+
+    // Добавление игры в базу данных
+    const addGameToDatabase = async (gameName: string, coverImage?: string | null): Promise<boolean> => {
+        try {
+            const gameData: AddGameDTO = {
+                name: gameName,
+                cover: coverImage || null
+            };
+
+            console.log('Adding game to database:', gameData);
+
+            const response = await fetch(`${API_BASE}/games`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(gameData),
+            });
+
+            console.log('Add game response status:', response.status);
+
+            if (response.ok) {
+                console.log('Game added successfully:', gameName);
+                return true;
+            } else if (response.status === 409) {
+                const errorText = await response.text();
+                console.log('Game already exists:', errorText);
+                return true; // Игра уже существует - это не ошибка, продолжаем
+            } else {
+                console.error('Failed to add game:', response.status);
+                return false;
+            }
+        } catch (error) {
+            console.error('Error adding game:', error);
+            return false;
+        }
     };
 
     // Обработчики изменения полей
@@ -166,7 +210,14 @@ const CreatePost: React.FC = () => {
         setIsLoading(true);
 
         try {
-            // Формируем тело запроса с GameTag
+            // 1. Сначала добавляем игру в базу данных (если её там нет)
+            const gameAdded = await addGameToDatabase(gameTag.trim(), formData.Image);
+
+            if (!gameAdded) {
+                console.warn('Game could not be added, but continuing with post creation');
+            }
+
+            // 2. Формируем тело запроса для создания поста
             const requestData: CreatePostRequest = {
                 AuthorId: getAuthorId(),
                 GameTag: gameTag.trim(),
@@ -177,15 +228,18 @@ const CreatePost: React.FC = () => {
                 }
             };
 
-            console.log('Отправляемые данные:', requestData);
+            console.log('Отправляемые данные для поста:', requestData);
 
-            const response = await fetch('http://localhost:8080/api/create/post', {
+            // 3. Отправляем запрос на создание поста
+            const response = await fetch(`${API_BASE}/create/post`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(requestData)
             });
+
+            console.log('Create post response status:', response.status);
 
             if (response.ok) {
                 alert('Публикация успешно создана!');
@@ -202,9 +256,17 @@ const CreatePost: React.FC = () => {
                     fileInputRef.current.value = '';
                 }
             } else {
-                const error = await response.text();
-                console.error('Error response:', error);
-                alert('Ошибка при создании публикации');
+                let errorMessage = 'Ошибка при создании публикации';
+                try {
+                    const errorText = await response.text();
+                    if (errorText) {
+                        errorMessage = errorText;
+                    }
+                } catch (err) {
+                    console.error('Could not parse error response');
+                }
+                console.error('Error response:', errorMessage);
+                alert(errorMessage);
             }
         } catch (error) {
             console.error('Error:', error);
@@ -232,142 +294,142 @@ const CreatePost: React.FC = () => {
     };
 
     return (
-        <div className="post-form-container">
-            <div className="form-header">
-                <h1>Создать публикацию</h1>
-                <p>Поделитесь своими мыслями с сообществом</p>
-            </div>
+      <div className="post-form-container">
+          <div className="form-header">
+              <h1>Создать публикацию</h1>
+              <p>Поделитесь своими мыслями с сообществом</p>
+          </div>
 
-            <div className="form-body">
-                <form onSubmit={handleSubmit}>
-                    {/* Game Tag field - input */}
-                    <div className="form-group">
-                        <label htmlFor="gameTag">
-                            Игра
-                            <span className="required">*</span>
-                        </label>
-                        <input
-                            type="text"
-                            id="gameTag"
-                            name="GameTag"
-                            className="form-input"
-                            value={gameTag}
-                            onChange={handleGameTagChange}
-                            placeholder="Введите название игры (например, Resident Evil 4 Remake)"
-                            maxLength={100}
-                            required
-                        />
-                        <div className="char-counter">
-                            <span>{gameTag.length}</span> / 100
+          <div className="form-body">
+              <form onSubmit={handleSubmit}>
+                  {/* Game Tag field - input */}
+                  <div className="form-group">
+                      <label htmlFor="gameTag">
+                          Игра
+                          <span className="required">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="gameTag"
+                        name="GameTag"
+                        className="form-input"
+                        value={gameTag}
+                        onChange={handleGameTagChange}
+                        placeholder="Введите название игры (например, Resident Evil 4 Remake)"
+                        maxLength={100}
+                        required
+                      />
+                      <div className="char-counter">
+                          <span>{gameTag.length}</span> / 100
+                      </div>
+                      {gameTagError && <span className="error-message">{gameTagError}</span>}
+                  </div>
+
+                  {/* Title field */}
+                  <div className={`form-group ${errors.Title ? 'error' : ''}`}>
+                      <label htmlFor="title">
+                          Заголовок
+                          <span className="required">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="title"
+                        name="Title"
+                        className="form-input"
+                        value={formData.Title}
+                        onChange={handleInputChange}
+                        placeholder="Введите заголовок публикации..."
+                        maxLength={200}
+                        required
+                      />
+                      <div className="char-counter">
+                          <span>{formData.Title.length}</span> / 200
+                      </div>
+                      {errors.Title && <span className="error-message">{errors.Title}</span>}
+                  </div>
+
+                  {/* Body text field */}
+                  <div className={`form-group ${errors.BodyText ? 'error' : ''}`}>
+                      <label htmlFor="bodyText">
+                          Текст публикации
+                      </label>
+                      <textarea
+                        id="bodyText"
+                        name="BodyText"
+                        className="form-textarea"
+                        value={formData.BodyText || ''}
+                        onChange={handleInputChange}
+                        placeholder="Напишите что-нибудь..."
+                        maxLength={5000}
+                        rows={6}
+                      />
+                      <div className="char-counter">
+                          <span>{formData.BodyText?.length || 0}</span> / 5000
+                      </div>
+                      {errors.BodyText && <span className="error-message">{errors.BodyText}</span>}
+                  </div>
+
+                  {/* Image upload field */}
+                  <div className="form-group">
+                      <label>Изображение</label>
+                      <div
+                        className="image-upload-area"
+                        onClick={() => fileInputRef.current?.click()}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                      >
+                          <div className="upload-icon">🖼️</div>
+                          <div className="upload-text">
+                              Перетащите изображение сюда или <span className="browse">выберите файл</span>
+                          </div>
+                          <div className="upload-hint">
+                              Поддерживаются форматы: JPG, PNG, GIF, WEBP (макс. 10MB)
+                          </div>
+                      </div>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        id="imageInput"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={handleFileSelect}
+                      />
+                      {imagePreview && (
+                        <div className="image-preview">
+                            <img src={imagePreview} alt="Preview" />
+                            <button
+                              type="button"
+                              className="remove-image"
+                              onClick={removeImage}
+                            >
+                                ×
+                            </button>
                         </div>
-                        {gameTagError && <span className="error-message">{gameTagError}</span>}
-                    </div>
+                      )}
+                      {errors.Image && <span className="error-message">{errors.Image}</span>}
+                  </div>
 
-                    {/* Title field */}
-                    <div className={`form-group ${errors.Title ? 'error' : ''}`}>
-                        <label htmlFor="title">
-                            Заголовок
-                            <span className="required">*</span>
-                        </label>
-                        <input
-                            type="text"
-                            id="title"
-                            name="Title"
-                            className="form-input"
-                            value={formData.Title}
-                            onChange={handleInputChange}
-                            placeholder="Введите заголовок публикации..."
-                            maxLength={200}
-                            required
-                        />
-                        <div className="char-counter">
-                            <span>{formData.Title.length}</span> / 200
-                        </div>
-                        {errors.Title && <span className="error-message">{errors.Title}</span>}
-                    </div>
-
-                    {/* Body text field */}
-                    <div className={`form-group ${errors.BodyText ? 'error' : ''}`}>
-                        <label htmlFor="bodyText">
-                            Текст публикации
-                        </label>
-                        <textarea
-                            id="bodyText"
-                            name="BodyText"
-                            className="form-textarea"
-                            value={formData.BodyText || ''}
-                            onChange={handleInputChange}
-                            placeholder="Напишите что-нибудь..."
-                            maxLength={5000}
-                            rows={6}
-                        />
-                        <div className="char-counter">
-                            <span>{formData.BodyText?.length || 0}</span> / 5000
-                        </div>
-                        {errors.BodyText && <span className="error-message">{errors.BodyText}</span>}
-                    </div>
-
-                    {/* Image upload field */}
-                    <div className="form-group">
-                        <label>Изображение</label>
-                        <div
-                            className="image-upload-area"
-                            onClick={() => fileInputRef.current?.click()}
-                            onDragOver={handleDragOver}
-                            onDragLeave={handleDragLeave}
-                            onDrop={handleDrop}
-                        >
-                            <div className="upload-icon">🖼️</div>
-                            <div className="upload-text">
-                                Перетащите изображение сюда или <span className="browse">выберите файл</span>
-                            </div>
-                            <div className="upload-hint">
-                                Поддерживаются форматы: JPG, PNG, GIF, WEBP (макс. 10MB)
-                            </div>
-                        </div>
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            id="imageInput"
-                            accept="image/*"
-                            style={{ display: 'none' }}
-                            onChange={handleFileSelect}
-                        />
-                        {imagePreview && (
-                            <div className="image-preview">
-                                <img src={imagePreview} alt="Preview" />
-                                <button
-                                    type="button"
-                                    className="remove-image"
-                                    onClick={removeImage}
-                                >
-                                    ×
-                                </button>
-                            </div>
-                        )}
-                        {errors.Image && <span className="error-message">{errors.Image}</span>}
-                    </div>
-
-                    {/* Form actions */}
-                    <div className="form-actions">
-                        <button
-                            type="button"
-                            className="btn btn-secondary"
-                            onClick={handleCancel}
-                        >
-                            Отмена
-                        </button>
-                        <button
-                            type="submit"
-                            className={`btn btn-primary ${isLoading ? 'loading' : ''}`}
-                            disabled={isLoading}
-                        >
-                            {isLoading ? 'Публикация...' : 'Опубликовать'}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                  {/* Form actions */}
+                  <div className="form-actions">
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={handleCancel}
+                      >
+                          Отмена
+                      </button>
+                      <button
+                        type="submit"
+                        className={`btn btn-primary ${isLoading ? 'loading' : ''}`}
+                        disabled={isLoading}
+                      >
+                          {isLoading ? 'Публикация...' : 'Опубликовать'}
+                      </button>
+                  </div>
+              </form>
+          </div>
+      </div>
     );
 };
 

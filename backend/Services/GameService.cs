@@ -23,6 +23,13 @@ public class GameService(IGameRepository gameRepository) : IGameService
     public void AddGame(AddGameDTO gameDto)
     {
         var gameToAdd = gameDto.ToGame();
-        gameRepository.AddGame(gameToAdd);
+        try
+        {
+            gameRepository.AddGame(gameToAdd);
+        }
+        catch (InvalidOperationException e)
+        {
+            throw new InvalidOperationException(e.Message, e);
+        }
     }
 }

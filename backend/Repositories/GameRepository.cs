@@ -9,13 +9,24 @@ public class GameRepository(ApplicationDbContext context) : IGameRepository
 {
     public async Task<IEnumerable<Game>> GetAllGamesAsync()
     {
-        var games = await context.Games.ToListAsync();
+        var games = await context.Games
+            .OrderBy(x => x.Name)
+            .ToListAsync();
         return games;
     }
 
-    public async Task AddGame(Game game)
+    public Task AddGame(Game game)
     {
-        context.Games.Add(game);
-        await context.SaveChangesAsync();
+        if (!context.Games.Any(x => x.Name == game.Name))
+        {
+            context.Games.Add(game);
+            context.SaveChanges();
+        }
+        else
+        {
+            throw new InvalidOperationException("Game already exists");
+        }
+        
+        return Task.CompletedTask;
     }
 }
