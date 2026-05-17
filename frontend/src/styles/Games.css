@@ -41,6 +41,7 @@
     border-radius: 20px;
     overflow: hidden;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
 }
 
 .game-card:hover {
@@ -48,8 +49,25 @@
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
 }
 
+.game-card:focus {
+    outline: 2px solid #5A5A5A;
+    outline-offset: 2px;
+}
+
+.game-card:hover .game-card-image::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    transition: background-color 0.2s ease;
+}
+
 /* Изображение карточки */
 .game-card-image {
+    position: relative;
     width: 100%;
     aspect-ratio: 1 / 1;
     overflow: hidden;
@@ -57,6 +75,23 @@
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.game-posts-hint {
+    display: inline-block;
+    padding: 6px 12px;
+    background-color: #5A5A5A;
+    color: #FFFFFF;
+    border-radius: 30px;
+    font-family: 'Noto Sans';
+    font-size: 12px;
+    font-weight: 500;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.game-card:hover .game-posts-hint {
+    opacity: 1;
 }
 
 .game-card-image img {
@@ -219,6 +254,7 @@
     }
 }
 
+/* Адаптивность для телефонов */
 @media (max-width: 768px) {
     .games-container {
         padding: 16px;
@@ -245,8 +281,9 @@
         font-size: 16px;
     }
 
-    .game-link-btn {
-        padding: 8px 16px;
-        font-size: 13px;
+    .game-posts-hint {
+        opacity: 1;
+        font-size: 12px;
+        padding: 4px 12px;
     }
 }

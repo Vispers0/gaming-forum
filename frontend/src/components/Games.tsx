@@ -1,5 +1,6 @@
 // Games.tsx
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/Games.css";
 
 import noCoverImage from "../assets/Xbox_notFound.svg";
@@ -12,6 +13,7 @@ interface GetGameDTO {
 const API_BASE = 'http://localhost:8080/api';
 
 function Games() {
+  const navigate = useNavigate();
   const [games, setGames] = useState<GetGameDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,6 +52,12 @@ function Games() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Обработчик клика по карточке игры
+  const handleGameClick = (gameName: string) => {
+    // Перенаправляем на главную страницу с параметром tag
+    navigate(`/home?tag=${encodeURIComponent(gameName)}`);
   };
 
   if (isLoading) {
@@ -93,7 +101,19 @@ function Games() {
       </div>
       <div className="games-grid">
         {games.map((game, index) => (
-          <div key={index} className="game-card">
+          <div
+            key={index}
+            className="game-card"
+            onClick={() => handleGameClick(game.name)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleGameClick(game.name);
+              }
+            }}
+          >
             <div className="game-card-image">
               <img
                 src={game.cover || noCoverImage}
@@ -105,12 +125,9 @@ function Games() {
             </div>
             <div className="game-card-content">
               <h3 className="game-name">{game.name}</h3>
-              <button
-                className="game-link-btn"
-                onClick={() => window.location.href = `/home?tag=${encodeURIComponent(game.name)}`}
-              >
-                Перейти к постам
-              </button>
+              <span className="game-posts-hint">
+                                Показать посты
+                            </span>
             </div>
           </div>
         ))}
