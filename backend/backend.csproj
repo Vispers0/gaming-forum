@@ -20,4 +20,10 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="backend.Test\obj\backend.Test.csproj.nuget.dgspec.json" />
+    <_ContentIncludedByDefault Remove="backend.Test\obj\project.assets.json" />
+    <_ContentIncludedByDefault Remove="backend.Test\obj\project.packagespec.json" />
+  </ItemGroup>
+
 </Project>
