@@ -36,13 +36,20 @@ public class PostService : IPostService
 
     public async Task<GetPostDTO> GetPost(Guid guid)
     {
-        Post post = await _postRepository.GetPostAsync(guid);
+        try
+        {
+            Post post = await _postRepository.GetPostAsync(guid);
         
-        (int, string) publishedAgoTime = CalculatePostPublishTime(post);
+            (int, string) publishedAgoTime = CalculatePostPublishTime(post);
 
-        GetPostDTO postDTO = post.ToGetPostDTO(publishedAgoTime.Item1, publishedAgoTime.Item2);
+            GetPostDTO postDTO = post.ToGetPostDTO(publishedAgoTime.Item1, publishedAgoTime.Item2);
 
-        return postDTO;
+            return postDTO;
+        }
+        catch (KeyNotFoundException e)
+        {
+            throw new KeyNotFoundException();
+        }
     }
 
     public void CreatePost(Post post)
